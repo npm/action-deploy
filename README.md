@@ -1,20 +1,34 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# Action to manage GitHub deployments
 
-# Create a JavaScript Action using TypeScript
+## Usage - create deployment
 
-Use this template to bootstrap the creation of a JavaScript action.:rocket:
+### Inputs
 
-This template includes compilication support, tests, a validation workflow, publishing, and versioning guidance.  
+#### `type`
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+**Required** type of the defined action. Should be `create` to create a deployment.
 
-## Create an action from this template
+### Outputs
 
-Click the `Use this Template` and provide the new repo details for your action
+#### `deployment_id`
 
-## Code in Master
+The if of the created deployment.
+
+## Example usage
+
+```yaml
+uses: npm/action-deploy@master
+with:
+  type: 'create'
+  token: ${{github.token}}
+  logs: 'http://your-app.com/deployment_logs'
+  environment: 'staging'
+  environment_url: 'http://staging.your-app.com'
+```
+
+## Development
+
+### Prerequisites
 
 Install the dependencies  
 ```bash
@@ -38,7 +52,7 @@ $ npm test
 ...
 ```
 
-## Change action.yml
+### Change action.yml
 
 The action.yml contains defines the inputs and output for your action.
 
@@ -46,7 +60,7 @@ Update the action.yml with your name, description, inputs and outputs for your a
 
 See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
 
-## Change the Code
+### Change the Code
 
 Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
 
@@ -94,7 +108,7 @@ with:
   milliseconds: 1000
 ```
 
-See the [actions tab](https://github.com/actions/javascript-action/actions) for runs of this action! :rocket:
+See the [actions tab](https://github.com/npm/action-deploy/actions) for runs of this action! :rocket:
 
 ## Usage:
 

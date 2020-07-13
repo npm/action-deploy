@@ -1,10 +1,19 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: action-deploy
+description: Action to manage GitHub deployments
+author: radiantspace
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  token:
+    required: true
+    description: GitHub token
+  type:
+    required: true
+    description: a type of deployment action to perform, can be 'create', 'delete', 'delete-all' and 'status'
+  logs:
+    required: false
+    description: url to deployment logs
+  description:
+    required: false
+    description: description of a deployment
 runs:
   using: 'node12'
   main: 'dist/index.js'
