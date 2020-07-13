@@ -22,8 +22,7 @@ async function run (): Promise<void> {
     type = core.getInput('type', { required: true }) as ActionType
     logsUrl = core.getInput('logs') ?? ''
     description = core.getInput('description') ?? `deployed by ${actor}`
-    initialStatus =
-      (core.getInput('initial_status') as DeploymentStatus) ?? 'in_progress'
+    initialStatus = (core.getInput('initial_status') ?? 'in_progress') as DeploymentStatus
 
     // default to branch name w/o `deploy-` prefix
     environment = core.getInput('environment') ?? (ref ?? '').replace(/^refs\/heads/, '').replace(/^deploy-/, '')

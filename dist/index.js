@@ -3545,7 +3545,7 @@ function run() {
             type = core.getInput('type', { required: true });
             logsUrl = (_a = core.getInput('logs')) !== null && _a !== void 0 ? _a : '';
             description = (_b = core.getInput('description')) !== null && _b !== void 0 ? _b : `deployed by ${actor}`;
-            initialStatus = (_c = core.getInput('initial_status')) !== null && _c !== void 0 ? _c : 'in_progress';
+            initialStatus = ((_c = core.getInput('initial_status')) !== null && _c !== void 0 ? _c : 'in_progress');
             // default to branch name w/o `deploy-` prefix
             environment = (_d = core.getInput('environment')) !== null && _d !== void 0 ? _d : (ref !== null && ref !== void 0 ? ref : '').replace(/^refs\/heads/, '').replace(/^deploy-/, '');
             environmentUrl = core.getInput('environment_url');
