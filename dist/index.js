@@ -3529,7 +3529,7 @@ const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
 const create_1 = __webpack_require__(646);
 function run() {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
         let token;
         let type;
@@ -3540,19 +3540,27 @@ function run() {
         let environmentUrl;
         let deploymentId;
         const { actor, ref } = github.context;
+        console.log('Context..');
+        console.log(`actor: ${actor}`);
+        console.log(`ref: ${ref}`);
         try {
+            console.log('Inputs..');
             token = core.getInput('token', { required: true });
             type = core.getInput('type', { required: true });
+            console.log(`type: ${type}`);
             logsUrl = (_a = core.getInput('logs')) !== null && _a !== void 0 ? _a : '';
+            console.log(`logs: ${logsUrl}`);
             description = (_b = core.getInput('description')) !== null && _b !== void 0 ? _b : `deployed by ${actor}`;
+            console.log(`description: ${description}`);
             initialStatus = ((_c = core.getInput('initial_status')) !== null && _c !== void 0 ? _c : 'in_progress');
+            console.log(`initialStatus: ${initialStatus}`);
             // default to branch name w/o `deploy-` prefix
-            environment = (_d = core.getInput('environment')) !== null && _d !== void 0 ? _d : (ref !== null && ref !== void 0 ? ref : '').replace(/^refs\/heads/, '').replace(/^deploy-/, '');
-            environmentUrl = core.getInput('environment_url');
+            environment = (_d = core.getInput('environment')) !== null && _d !== void 0 ? _d : (ref).replace(/^refs\/heads/, '').replace(/^deploy-/, '');
+            console.log(`environment: ${environment}`);
+            environmentUrl = (_e = core.getInput('environment_url')) !== null && _e !== void 0 ? _e : '';
+            console.log(`environmentUrl: ${environmentUrl}`);
             const shouldRequireDeploymentId = type === 'status' || type === 'delete';
-            deploymentId = core.getInput('deployment_id', {
-                required: shouldRequireDeploymentId
-            });
+            deploymentId = core.getInput('deployment_id', { required: shouldRequireDeploymentId });
         }
         catch (error) {
             core.error(error);
