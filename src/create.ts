@@ -29,10 +29,8 @@ async function invalidatePreviousDeployments (
       )
 
       // invalidate the deployment
-      if (lastStatus.state === 'success') {
-        console.log(
-          `invalidating deployment: ${JSON.stringify(deployment, null, 2)}`
-        )
+      if (lastStatus?.state === 'success') {
+        console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`)
         await client.repos.createDeploymentStatus({
           ...context.repo,
           deployment_id: deployment.id,
@@ -63,13 +61,17 @@ export async function create (
     description
   })
 
-  await client.repos.createDeploymentStatus({
+  console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`)
+
+  const status = await client.repos.createDeploymentStatus({
     ...context.repo,
     deployment_id: deployment.data.id,
     state: initialStatus,
     log_url: logUrl,
     environment_url: environmentUrl
   })
+  console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`)
+
   core.setOutput('deployment_id', deployment.data.id.toString())
 
   return deployment.data.id.toString()

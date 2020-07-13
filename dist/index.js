@@ -8562,7 +8562,7 @@ function invalidatePreviousDeployments(client, environment) {
             const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
             console.log(`last status for deployment_id '${deployment.id}': ${JSON.stringify(lastStatus, null, 2)}`);
             // invalidate the deployment
-            if (lastStatus.state === 'success') {
+            if ((lastStatus === null || lastStatus === void 0 ? void 0 : lastStatus.state) === 'success') {
                 console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`);
                 yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id, state: 'inactive' }));
             }
@@ -8573,7 +8573,9 @@ function create(client, logUrl, description, initialStatus, environment, environ
     return __awaiter(this, void 0, void 0, function* () {
         yield invalidatePreviousDeployments(client, environment);
         const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description }));
-        yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.data.id, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
+        console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
+        const status = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.data.id, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
+        console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);
         core.setOutput('deployment_id', deployment.data.id.toString());
         return deployment.data.id.toString();
     });
