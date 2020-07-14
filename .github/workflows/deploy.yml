@@ -1,0 +1,31 @@
+name: deploy
+on:
+  push:
+    branches:
+      - deploy-**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: create a deployment
+      uses: npm/action-deploy@v1
+      id: create-deployment
+      with:
+        type: create
+        token: ${{github.token}}
+
+    # add here an actual deployment
+    - name: placeholder for actual deployment
+      run: sleep 10s
+
+    - name: finish deployment
+      uses: npm/action-deploy@v1
+      with:
+        type: finish
+        token: ${{github.token}}
+        status: success
+        deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
+
