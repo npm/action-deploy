@@ -84,6 +84,7 @@ export async function run (): Promise<void> {
           environment,
           environmentUrl
         )
+        console.log(`setOutput::deployment_id: ${deploymentId}`)
         core.setOutput('deployment_id', deploymentId)
       } catch (error) {
         core.error(error)
