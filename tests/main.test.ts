@@ -12,19 +12,10 @@ const postDeploymentReply = { id: 42 } as any
 const postStatusReply = {} as any
 
 describe('create', () => {
+
+
   beforeEach(() => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
-
-    let inputs = {} as any
-    let inputSpy: jest.SpyInstance;
-
-    // @actions/core
-    inputs = {
-      'token': 'fake-token',
-      'type': 'create',
-    }
-    inputSpy = jest.spyOn(core, 'getInput');
-    inputSpy.mockImplementation(name => inputs[name]);
 
     // @actions/github
     Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
@@ -32,12 +23,19 @@ describe('create', () => {
   })
 
   afterEach(() => {
-    jest.resetAllMocks();
-    jest.clearAllMocks();
+    jest.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('200', async () => {
     // arrange
+    const inputs = {
+      'token': 'fake-token',
+      'type': 'create',
+    } as any
+    const inputSpy = jest.spyOn(core, 'getInput')
+    inputSpy.mockImplementation(name => inputs[name])
+
     const getListDeployments = nock('https://api.github.com')
       .get('/repos/owner/repo/deployments?ref=refs%2Fheads%2Fmaster&environment=master')
       .reply(200, listDeploymentsReply)
@@ -51,17 +49,46 @@ describe('create', () => {
       .reply(200, postStatusReply)
 
     // act
-    try {
-      await main.run()
-    } catch (error) {
-      console.error(JSON.stringify(error.toString(), null, 2))
-      console.error(JSON.stringify(error.stack, null, 2))
-    }
+    await main.run()
 
     // assert
     getListDeployments.done()
     postDeployment.done()
     postStatus.done()
+  })
+
+  it('400 when environment_url has no https:// prefix', async () => {
+    // arrange
+    const inputs = {
+      'token': 'fake-token',
+      'type': 'create',
+      'environment_url': 'test.app'
+    } as any
+    const inputSpy = jest.spyOn(core, 'getInput')
+    inputSpy.mockImplementation(name => inputs[name])
+
+    const setFailedSpy = jest.spyOn(core, 'setFailed')
+
+    const getListDeployments = nock('https://api.github.com')
+      .get('/repos/owner/repo/deployments?ref=refs%2Fheads%2Fmaster&environment=master')
+      .reply(200, listDeploymentsReply)
+
+    const postDeployment = nock('https://api.github.com')
+      .post('/repos/owner/repo/deployments')
+      .reply(400, {"resource":"DeploymentStatus","code":"custom","field":"environment_url","message":"environment_url must use http(s) scheme"})
+
+    // act
+    try {
+      await main.run()
+      expect('this should not be reached').toEqual('')
+    } catch (error) {
+      expect(error.message).toEqual("{\"resource\":\"DeploymentStatus\",\"code\":\"custom\",\"field\":\"environment_url\",\"message\":\"environment_url must use http(s) scheme\"}")
+    }
+
+    // assert
+    getListDeployments.done()
+    postDeployment.done()
+    expect(setFailedSpy.mock.calls).toHaveLength(1)
   })
 })
 
@@ -70,15 +97,15 @@ describe('finish', () => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
 
     let inputs = {} as any
-    let inputSpy: jest.SpyInstance;
+    let inputSpy: jest.SpyInstance
 
     // @actions/core
     inputs = {
       'token': 'fake-token',
       'type': 'finish',
     }
-    inputSpy = jest.spyOn(core, 'getInput');
-    inputSpy.mockImplementation(name => inputs[name]);
+    inputSpy = jest.spyOn(core, 'getInput')
+    inputSpy.mockImplementation(name => inputs[name])
 
     // @actions/github
     Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
@@ -86,8 +113,8 @@ describe('finish', () => {
   })
 
   afterEach(() => {
-    jest.resetAllMocks();
-    jest.clearAllMocks();
+    jest.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('200', async () => {
@@ -97,12 +124,7 @@ describe('finish', () => {
       .reply(200, postStatusReply)
 
     // act
-    try {
-      await main.run()
-    } catch (error) {
-      console.error(JSON.stringify(error.toString(), null, 2))
-      console.error(JSON.stringify(error.stack, null, 2))
-    }
+    await main.run()
 
     // assert
     postDeploymentStatus.done()
@@ -114,7 +136,7 @@ describe('delete-all', () => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
 
     let inputs = {} as any
-    let inputSpy: jest.SpyInstance;
+    let inputSpy: jest.SpyInstance
 
     // @actions/core
     inputs = {
@@ -122,8 +144,8 @@ describe('delete-all', () => {
       'type': 'delete-all',
       'environment': 'staging'
     }
-    inputSpy = jest.spyOn(core, 'getInput');
-    inputSpy.mockImplementation(name => inputs[name]);
+    inputSpy = jest.spyOn(core, 'getInput')
+    inputSpy.mockImplementation(name => inputs[name])
 
     // @actions/github
     Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
@@ -131,8 +153,8 @@ describe('delete-all', () => {
   })
 
   afterEach(() => {
-    jest.resetAllMocks();
-    jest.clearAllMocks();
+    jest.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('200', async () => {
@@ -150,12 +172,7 @@ describe('delete-all', () => {
       .reply(200)
 
     // act
-    try {
-      await main.run()
-    } catch (error) {
-      console.error(JSON.stringify(error.toString(), null, 2))
-      console.error(JSON.stringify(error.stack, null, 2))
-    }
+    await main.run()
 
     // assert
     getListDeployments.done()
@@ -169,7 +186,7 @@ describe('delete', () => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
 
     let inputs = {} as any
-    let inputSpy: jest.SpyInstance;
+    let inputSpy: jest.SpyInstance
 
     // @actions/core
     inputs = {
@@ -177,8 +194,8 @@ describe('delete', () => {
       'type': 'delete',
       'deployment_id': '42'
     }
-    inputSpy = jest.spyOn(core, 'getInput');
-    inputSpy.mockImplementation(name => inputs[name]);
+    inputSpy = jest.spyOn(core, 'getInput')
+    inputSpy.mockImplementation(name => inputs[name])
 
     // @actions/github
     Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
@@ -186,8 +203,8 @@ describe('delete', () => {
   })
 
   afterEach(() => {
-    jest.resetAllMocks();
-    jest.clearAllMocks();
+    jest.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   it('200', async () => {
@@ -201,12 +218,7 @@ describe('delete', () => {
       .reply(200)
 
     // act
-    try {
-      await main.run()
-    } catch (error) {
-      console.error(JSON.stringify(error.toString(), null, 2))
-      console.error(JSON.stringify(error.stack, null, 2))
-    }
+    await main.run()
 
     // assert
     postStatus.done()

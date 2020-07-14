@@ -88,6 +88,7 @@ export async function run (): Promise<void> {
         core.setOutput('deployment_id', deploymentId)
       } catch (error) {
         core.error(error)
+        core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break
@@ -102,6 +103,7 @@ export async function run (): Promise<void> {
         )
       } catch (error) {
         core.error(error)
+        core.setFailed(`Finish deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break
@@ -113,6 +115,7 @@ export async function run (): Promise<void> {
         )
       } catch (error) {
         core.error(error)
+        core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break
@@ -124,6 +127,7 @@ export async function run (): Promise<void> {
         )
       } catch (error) {
         core.error(error)
+        core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break

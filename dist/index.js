@@ -3594,6 +3594,7 @@ function run() {
                 }
                 catch (error) {
                     core.error(error);
+                    core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`);
                     throw error;
                 }
                 break;
@@ -3603,6 +3604,7 @@ function run() {
                 }
                 catch (error) {
                     core.error(error);
+                    core.setFailed(`Finish deployment failed: ${JSON.stringify(error, null, 2)}`);
                     throw error;
                 }
                 break;
@@ -3612,6 +3614,7 @@ function run() {
                 }
                 catch (error) {
                     core.error(error);
+                    core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`);
                     throw error;
                 }
                 break;
@@ -3621,6 +3624,7 @@ function run() {
                 }
                 catch (error) {
                     core.error(error);
+                    core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`);
                     throw error;
                 }
                 break;
