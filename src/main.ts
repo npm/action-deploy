@@ -1,9 +1,10 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { create } from './create'
+import { finish } from './finish'
 import { DeploymentStatus } from './deployment-status'
 
-type ActionType = 'create' | 'delete' | 'delete-all' | 'status'
+type ActionType = 'create' | 'delete' | 'delete-all' | 'finish'
 
 // nullify getInput empty results
 // to allow coalescence ?? operator
@@ -15,12 +16,12 @@ function getInput (name: string, options?: core.InputOptions): string | null {
   return result
 }
 
-async function run (): Promise<void> {
+export async function run (): Promise<void> {
   let token: string
   let type: ActionType
   let logsUrl: string
   let description: string
-  let initialStatus: DeploymentStatus
+  let status: DeploymentStatus
   let environment: string
   let environmentUrl: string
   let deploymentId: string
@@ -44,8 +45,8 @@ async function run (): Promise<void> {
     description = getInput('description') ?? `deployed by ${actor}`
     console.log(`description: ${description}`)
 
-    initialStatus = (getInput('initial_status') ?? 'in_progress') as DeploymentStatus
-    console.log(`initialStatus: ${initialStatus}`)
+    status = (getInput('status') ?? 'in_progress') as DeploymentStatus
+    console.log(`status: ${status}`)
 
     // default to branch name w/o `deploy-` prefix
     environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '')
@@ -54,8 +55,9 @@ async function run (): Promise<void> {
     environmentUrl = getInput('environment_url') ?? ''
     console.log(`environmentUrl: ${environmentUrl}`)
 
-    const shouldRequireDeploymentId = type === 'status' || type === 'delete'
+    const shouldRequireDeploymentId = type === 'finish' || type === 'delete'
     deploymentId = getInput('deployment_id', { required: shouldRequireDeploymentId }) ?? '0'
+    console.log(`deploymentId: ${deploymentId}`)
   } catch (error) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
@@ -66,23 +68,42 @@ async function run (): Promise<void> {
 
   switch (type) {
     case 'create':
-      deploymentId = await create(
-        client,
-        logsUrl,
-        description,
-        initialStatus,
-        environment,
-        environmentUrl
-      )
-      core.setOutput('deployment_id', deploymentId)
+      try {
+        deploymentId = await create(
+          client,
+          logsUrl,
+          description,
+          status,
+          environment,
+          environmentUrl
+        )
+        core.setOutput('deployment_id', deploymentId)
+      } catch (error) {
+        core.error(error)
+        // core.setFailed(error)
+        throw error
+      }
+      break
+    case 'finish':
+      try {
+        await finish(
+          client,
+          deploymentId,
+          status,
+          logsUrl,
+          environmentUrl
+        )
+      } catch (error) {
+        core.error(error)
+        // core.setFailed(`Could not finish a deployment: ${JSON.stringify(error, null, 2)}`)
+        throw error
+      }
       break
     case 'delete':
       break
     case 'delete-all':
       break
-    case 'status':
-      break
   }
 }
 
-run() // eslint-disable-line @typescript-eslint/no-floating-promises
+if (process.env.NODE_ENV !== 'test') run() // eslint-disable-line @typescript-eslint/no-floating-promises

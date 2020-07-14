@@ -1,5 +1,4 @@
 import { context, GitHub } from '@actions/github'
-import * as core from '@actions/core'
 import { DeploymentStatus } from './deployment-status'
 
 async function invalidatePreviousDeployments (
@@ -71,8 +70,5 @@ export async function create (
     environment_url: environmentUrl
   })
   console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`)
-
-  core.setOutput('deployment_id', deployment.data.id.toString())
-
   return deployment.data.id.toString()
 }

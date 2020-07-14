@@ -3525,9 +3525,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.run = void 0;
 const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
 const create_1 = __webpack_require__(646);
+const finish_1 = __webpack_require__(209);
 // nullify getInput empty results
 // to allow coalescence ?? operator
 function getInput(name, options) {
@@ -3544,7 +3546,7 @@ function run() {
         let type;
         let logsUrl;
         let description;
-        let initialStatus;
+        let status;
         let environment;
         let environmentUrl;
         let deploymentId;
@@ -3561,15 +3563,16 @@ function run() {
             console.log(`logs: ${logsUrl}`);
             description = (_c = getInput('description')) !== null && _c !== void 0 ? _c : `deployed by ${actor}`;
             console.log(`description: ${description}`);
-            initialStatus = ((_d = getInput('initial_status')) !== null && _d !== void 0 ? _d : 'in_progress');
-            console.log(`initialStatus: ${initialStatus}`);
+            status = ((_d = getInput('status')) !== null && _d !== void 0 ? _d : 'in_progress');
+            console.log(`status: ${status}`);
             // default to branch name w/o `deploy-` prefix
             environment = (_e = getInput('environment')) !== null && _e !== void 0 ? _e : ref.replace('refs/heads/', '').replace(/^deploy-/, '');
             console.log(`environment: ${environment}`);
             environmentUrl = (_f = getInput('environment_url')) !== null && _f !== void 0 ? _f : '';
             console.log(`environmentUrl: ${environmentUrl}`);
-            const shouldRequireDeploymentId = type === 'status' || type === 'delete';
+            const shouldRequireDeploymentId = type === 'finish' || type === 'delete';
             deploymentId = (_g = getInput('deployment_id', { required: shouldRequireDeploymentId })) !== null && _g !== void 0 ? _g : '0';
+            console.log(`deploymentId: ${deploymentId}`);
         }
         catch (error) {
             core.error(error);
@@ -3579,19 +3582,64 @@ function run() {
         const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] });
         switch (type) {
             case 'create':
-                deploymentId = yield create_1.create(client, logsUrl, description, initialStatus, environment, environmentUrl);
-                core.setOutput('deployment_id', deploymentId);
+                try {
+                    deploymentId = yield create_1.create(client, logsUrl, description, status, environment, environmentUrl);
+                    core.setOutput('deployment_id', deploymentId);
+                }
+                catch (error) {
+                    core.error(error);
+                    // core.setFailed(error)
+                    throw error;
+                }
+                break;
+            case 'finish':
+                try {
+                    yield finish_1.finish(client, deploymentId, status, logsUrl, environmentUrl);
+                }
+                catch (error) {
+                    core.error(error);
+                    // core.setFailed(`Could not finish a deployment: ${JSON.stringify(error, null, 2)}`)
+                    throw error;
+                }
                 break;
             case 'delete':
                 break;
             case 'delete-all':
                 break;
-            case 'status':
-                break;
         }
     });
 }
-run(); // eslint-disable-line @typescript-eslint/no-floating-promises
+exports.run = run;
+if (process.env.NODE_ENV !== 'test')
+    run(); // eslint-disable-line @typescript-eslint/no-floating-promises
+
+
+/***/ }),
+
+/***/ 209:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.finish = void 0;
+const github_1 = __webpack_require__(469);
+function finish(client, deploymentId, status, logUrl, environmentUrl) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const statusResult = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: Number(deploymentId), state: status, log_url: logUrl, environment_url: environmentUrl }));
+        console.log(`created deployment status: ${JSON.stringify(statusResult.data, null, 2)}`);
+    });
+}
+exports.finish = finish;
 
 
 /***/ }),
@@ -8539,25 +8587,6 @@ module.exports = require("net");
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8570,7 +8599,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.create = void 0;
 const github_1 = __webpack_require__(469);
-const core = __importStar(__webpack_require__(470));
 function invalidatePreviousDeployments(client, environment) {
     return __awaiter(this, void 0, void 0, function* () {
         const deployments = yield client.repos.listDeployments(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, environment }));
@@ -8593,7 +8621,6 @@ function create(client, logUrl, description, initialStatus, environment, environ
         console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
         const status = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.data.id, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
         console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);
-        core.setOutput('deployment_id', deployment.data.id.toString());
         return deployment.data.id.toString();
     });
 }

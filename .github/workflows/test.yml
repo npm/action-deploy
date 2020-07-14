@@ -19,6 +19,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: ./
+      id: create
       with:
         token: ${{github.token}}
         type: create
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: finish
+        deployment_id: ${{steps.create.outputs.deployment_id}}
