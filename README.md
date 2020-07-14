@@ -12,19 +12,19 @@ Features:
 
 Inputs:
 
-parameter | description
-- | -
+| parameter | description
+| - | -
 `token`|**Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
 `type`|**Required** type of an action. Should be `create` to create a deployment
 `logs`|url to the deployment logs
 `environment`|environment to create a deployments in, default to `context.ref` without prefixes (`'refs/heads/'`, `'deploy-'`), i.e. branch name
 `environment_url`|link to the deployed application
-`description`| optional description, defaults to `"deployed by $context.actor"`
+`description`|optional description, defaults to `"deployed by $context.actor"`
 
 Outputs:
 
-output | description
-- | -
+|output | description
+|- | -
 `deployment_id` | The `id` of the created deployment
 
 #### Example usage
@@ -46,8 +46,8 @@ Given in one of the previous steps you created a deployment, with `finish` you c
 
 Inputs:
 
-parameter | description
-- | -
+|parameter | description
+|- | -
 `token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
 `type` | **Required** type of an action. Should be `finish`
 `deployment_id` | **Required** the `id` of the a deployment to finish
@@ -87,8 +87,8 @@ Allows deleting all deployments for a specific environment
 
 Inputs:
 
-parameter | description
-- | -
+|parameter | description
+|- | -
 `token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
 `type` | **Required** type of an action. Should be `delete-all`
 `environment` | environment to delete all deployments in
@@ -112,8 +112,8 @@ Given in one of the previous steps you created a deployment, with `delete` you c
 
 Inputs:
 
-parameter | description
-- | -
+|parameter | description
+|- | -
 `token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
 `type` | **Required** type of an action. Should be `delete`
 `deployment_id` | **Required** the `id` of the a deployment to delete
