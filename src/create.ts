@@ -57,7 +57,8 @@ export async function create (
     environment,
     transient_environment: true,
     auto_merge: false,
-    description
+    description,
+    payload: JSON.stringify({ actor: context.actor })
   })
 
   console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`)

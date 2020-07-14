@@ -8668,7 +8668,7 @@ function invalidatePreviousDeployments(client, environment) {
 function create(client, logUrl, description, initialStatus, environment, environmentUrl) {
     return __awaiter(this, void 0, void 0, function* () {
         yield invalidatePreviousDeployments(client, environment);
-        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description }));
+        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description, payload: JSON.stringify({ actor: github_1.context.actor }) }));
         console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
         const status = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.data.id, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
         console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);
