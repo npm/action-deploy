@@ -38,3 +38,22 @@ jobs:
         token: ${{github.token}}
         type: delete
         deployment_id: ${{steps.create.outputs.deployment_id}}
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: create
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: delete
+        deployment_id: 248141623
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: delete
+        deployment_id: 248139855
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: delete
+        deployment_id: 248137552

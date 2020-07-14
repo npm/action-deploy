@@ -17,6 +17,12 @@ inputs:
   deployment_id:
     required: false
     description: an id for deployment if 'delete' or 'finish' type is used
+  status:
+    required: false
+    description: status for created or finished deployment
+  environment:
+    required: false
+    description: environment to create or delete all deployments in, default to context.ref without prefixes ('refs/heads/', 'deploy-')
 runs:
   using: 'node12'
   main: 'dist/index.js'

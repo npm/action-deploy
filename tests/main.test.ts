@@ -164,7 +164,7 @@ describe('delete-all', () => {
   })
 })
 
-describe('delete-all', () => {
+describe('delete', () => {
   beforeEach(() => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
 

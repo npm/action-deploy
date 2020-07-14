@@ -3553,11 +3553,12 @@ function run() {
         let environmentUrl;
         let deploymentId;
         const { actor, ref } = github.context;
-        console.log('Context..');
+        console.log('### context ###');
         console.log(`actor: ${actor}`);
         console.log(`ref: ${ref}`);
+        console.log('\n');
         try {
-            console.log('Inputs..');
+            console.log('### inputs ###');
             token = (_a = getInput('token', { required: true })) !== null && _a !== void 0 ? _a : '';
             type = getInput('type', { required: true });
             console.log(`type: ${type}`);
@@ -3581,7 +3582,9 @@ function run() {
             core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`);
             throw error;
         }
+        console.log('\n');
         const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] });
+        console.log('### run ###');
         switch (type) {
             case 'create':
                 try {

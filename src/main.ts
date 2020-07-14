@@ -31,12 +31,13 @@ export async function run (): Promise<void> {
 
   const { actor, ref } = github.context
 
-  console.log('Context..')
+  console.log('### context ###')
   console.log(`actor: ${actor}`)
   console.log(`ref: ${ref}`)
+  console.log('\n')
 
   try {
-    console.log('Inputs..')
+    console.log('### inputs ###')
     token = getInput('token', { required: true }) ?? ''
 
     type = getInput('type', { required: true }) as ActionType
@@ -66,8 +67,11 @@ export async function run (): Promise<void> {
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
   }
+  console.log('\n')
 
   const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] })
+
+  console.log('### run ###')
 
   switch (type) {
     case 'create':
