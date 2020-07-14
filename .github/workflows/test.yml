@@ -19,41 +19,40 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: ./
+      name: Delete all deployments
       with:
         token: ${{github.token}}
         type: delete-all
     - uses: ./
-      id: create
+      name: Create first deployment
+      id: create-first
       with:
         token: ${{github.token}}
         type: create
     - uses: ./
+      name: Finish first deployment with success
       with:
         token: ${{github.token}}
         type: finish
         status: success
-        deployment_id: ${{steps.create.outputs.deployment_id}}
+        deployment_id: ${{steps.create-first.outputs.deployment_id}}
     - uses: ./
+      name: Delete first deployment
       with:
         token: ${{github.token}}
         type: delete
-        deployment_id: ${{steps.create.outputs.deployment_id}}
+        deployment_id: ${{steps.create-first.outputs.deployment_id}}
     - uses: ./
+      name: Create second deployment
+      id: create-second
       with:
         token: ${{github.token}}
         type: create
+        environment: test
     - uses: ./
+      name: Finish second deployment
       with:
         token: ${{github.token}}
-        type: delete
-        deployment_id: 248141623
-    - uses: ./
-      with:
-        token: ${{github.token}}
-        type: delete
-        deployment_id: 248139855
-    - uses: ./
-      with:
-        token: ${{github.token}}
-        type: delete
-        deployment_id: 248137552
+        type: finish
+        status: success
+        deployment_id: ${{steps.create-second.outputs.deployment_id}}
