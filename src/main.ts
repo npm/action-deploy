@@ -5,6 +5,16 @@ import { DeploymentStatus } from './deployment-status'
 
 type ActionType = 'create' | 'delete' | 'delete-all' | 'status'
 
+// nullify getInput empty results
+// to allow coalescence ?? operator
+function getInput (name: string, options?: core.InputOptions): string | null {
+  const result = core.getInput(name, options)
+  if (result === '') {
+    return null
+  }
+  return result
+}
+
 async function run (): Promise<void> {
   let token: string
   let type: ActionType
@@ -23,29 +33,29 @@ async function run (): Promise<void> {
 
   try {
     console.log('Inputs..')
-    token = core.getInput('token', { required: true })
+    token = getInput('token', { required: true }) ?? ''
 
-    type = core.getInput('type', { required: true }) as ActionType
+    type = getInput('type', { required: true }) as ActionType
     console.log(`type: ${type}`)
 
-    logsUrl = core.getInput('logs') ?? ''
+    logsUrl = getInput('logs') ?? ''
     console.log(`logs: ${logsUrl}`)
 
-    description = core.getInput('description') ?? `deployed by ${actor}`
+    description = getInput('description') ?? `deployed by ${actor}`
     console.log(`description: ${description}`)
 
-    initialStatus = (core.getInput('initial_status') ?? 'in_progress') as DeploymentStatus
+    initialStatus = (getInput('initial_status') ?? 'in_progress') as DeploymentStatus
     console.log(`initialStatus: ${initialStatus}`)
 
     // default to branch name w/o `deploy-` prefix
-    environment = core.getInput('environment') ?? (ref).replace(/^refs\/heads/, '').replace(/^deploy-/, '')
+    environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '')
     console.log(`environment: ${environment}`)
 
-    environmentUrl = core.getInput('environment_url') ?? ''
+    environmentUrl = getInput('environment_url') ?? ''
     console.log(`environmentUrl: ${environmentUrl}`)
 
     const shouldRequireDeploymentId = type === 'status' || type === 'delete'
-    deploymentId = core.getInput('deployment_id', { required: shouldRequireDeploymentId })
+    deploymentId = getInput('deployment_id', { required: shouldRequireDeploymentId }) ?? '0'
   } catch (error) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
