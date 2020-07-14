@@ -22,7 +22,10 @@ inputs:
     description: status for created or finished deployment
   environment:
     required: false
-    description: environment to create or delete all deployments in, default to context.ref without prefixes ('refs/heads/', 'deploy-')
+    description: environment to create or delete all deployments in, default to context.ref without prefixes ('refs/heads/', 'deploy-'), i.e. branch name
+  environment_url:
+    required: false
+    description: link for the deployment (e.g. http://staging.your.app/status)
 runs:
   using: 'node12'
   main: 'dist/index.js'
