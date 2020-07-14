@@ -27,4 +27,5 @@ jobs:
       with:
         token: ${{github.token}}
         type: finish
+        status: success
         deployment_id: ${{steps.create.outputs.deployment_id}}
