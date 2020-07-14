@@ -17,10 +17,10 @@ export async function deleteAll (
       ...context.repo,
       deployment_id: deployment.id,
       state: 'failure'
-    });
+    })
 
     // then delete it
     console.log(`delete deployment: ${deployment.url}`)
-    await client.request(deployment.url, { "method": "DELETE" })
+    await client.request(deployment.url, { method: 'DELETE' })
   }))
 }

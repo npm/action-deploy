@@ -33,6 +33,7 @@
     "@types/sinon": "^9.0.4",
     "@typescript-eslint/parser": "^2.8.0",
     "@zeit/ncc": "^0.20.5",
+    "git-validate": "^2.2.4",
     "jest": "^24.9.0",
     "jest-circus": "^24.9.0",
     "js-yaml": "^3.13.1",
@@ -41,5 +42,8 @@
     "ts-jest": "^24.2.0",
     "ts-standard": "^8.0.1",
     "typescript": "^3.6.4"
-  }
+  },
+  "pre-commit": [
+    "all"
+  ]
 }
