@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { create } from './create'
 import { finish } from './finish'
+import { deleteAll } from './delete-all'
 import { DeploymentStatus } from './deployment-status'
 
 type ActionType = 'create' | 'delete' | 'delete-all' | 'finish'
@@ -80,7 +81,6 @@ export async function run (): Promise<void> {
         core.setOutput('deployment_id', deploymentId)
       } catch (error) {
         core.error(error)
-        // core.setFailed(error)
         throw error
       }
       break
@@ -88,20 +88,28 @@ export async function run (): Promise<void> {
       try {
         await finish(
           client,
-          deploymentId,
+          Number(deploymentId),
           status,
           logsUrl,
           environmentUrl
         )
       } catch (error) {
         core.error(error)
-        // core.setFailed(`Could not finish a deployment: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break
     case 'delete':
       break
     case 'delete-all':
+      try {
+        await deleteAll(
+          client,
+          environment
+        )
+      } catch (error) {
+        core.error(error)
+        throw error
+      }
       break
   }
 }

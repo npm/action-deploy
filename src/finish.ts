@@ -3,14 +3,14 @@ import { DeploymentStatus } from './deployment-status'
 
 export async function finish (
   client: GitHub,
-  deploymentId: string,
+  deploymentId: number,
   status: DeploymentStatus,
   logUrl: string,
   environmentUrl: string
 ): Promise<void> {
   const statusResult = await client.repos.createDeploymentStatus({
     ...context.repo,
-    deployment_id: Number(deploymentId),
+    deployment_id: deploymentId,
     state: status,
     log_url: logUrl,
     environment_url: environmentUrl
