@@ -3,6 +3,8 @@ import * as github from '@actions/github'
 import { create } from './create'
 import { finish } from './finish'
 import { deleteAll } from './delete-all'
+import { deleteDeployment } from './delete'
+
 import { DeploymentStatus } from './deployment-status'
 
 type ActionType = 'create' | 'delete' | 'delete-all' | 'finish'
@@ -99,6 +101,15 @@ export async function run (): Promise<void> {
       }
       break
     case 'delete':
+      try {
+        await deleteDeployment(
+          client,
+          Number(deploymentId)
+        )
+      } catch (error) {
+        core.error(error)
+        throw error
+      }
       break
     case 'delete-all':
       try {

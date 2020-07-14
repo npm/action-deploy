@@ -33,3 +33,8 @@ jobs:
         type: finish
         status: success
         deployment_id: ${{steps.create.outputs.deployment_id}}
+    - uses: ./
+      with:
+        token: ${{github.token}}
+        type: delete
+        deployment_id: ${{steps.create.outputs.deployment_id}}

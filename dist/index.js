@@ -3531,6 +3531,7 @@ const github = __importStar(__webpack_require__(469));
 const create_1 = __webpack_require__(646);
 const finish_1 = __webpack_require__(209);
 const delete_all_1 = __webpack_require__(832);
+const delete_1 = __webpack_require__(583);
 // nullify getInput empty results
 // to allow coalescence ?? operator
 function getInput(name, options) {
@@ -3602,6 +3603,13 @@ function run() {
                 }
                 break;
             case 'delete':
+                try {
+                    yield delete_1.deleteDeployment(client, Number(deploymentId));
+                }
+                catch (error) {
+                    core.error(error);
+                    throw error;
+                }
                 break;
             case 'delete-all':
                 try {
@@ -8479,6 +8487,40 @@ function getPageLinks (link) {
 
   return links
 }
+
+
+/***/ }),
+
+/***/ 583:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteDeployment = void 0;
+const github_1 = __webpack_require__(469);
+function deleteDeployment(client, deploymentId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // invalidate deployment first
+        // since we can't delete active deployment
+        console.log(`invalidate deployment: ${deploymentId}`);
+        const status = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: 'failure' }));
+        // then delete it
+        const deploymentUrl = status.data.deployment_url;
+        console.log(`delete deployment: ${deploymentUrl}`);
+        yield client.request(deploymentUrl, { method: 'DELETE' });
+    });
+}
+exports.deleteDeployment = deleteDeployment;
 
 
 /***/ }),
