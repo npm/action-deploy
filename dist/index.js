@@ -3589,6 +3589,7 @@ function run() {
             case 'create':
                 try {
                     deploymentId = yield create_1.create(client, logsUrl, description, status, environment, environmentUrl);
+                    console.log(`setOutput::deployment_id: ${deploymentId}`);
                     core.setOutput('deployment_id', deploymentId);
                 }
                 catch (error) {
