@@ -1,36 +1,155 @@
 # Action to manage GitHub deployments
 
-## Usage - create deployment
+Features:
+- create a deployment (and invalidate all previous deployments)
+- finish a deployment (with success/failure state)
+- delete all deployments in specific environment
+- delete a deployment by id
 
-### Inputs
+## Usage
 
-#### `type`
+### create
 
-**Required** type of the defined action. Should be `create` to create a deployment.
+Inputs:
 
-### Outputs
+parameter | description
+- | -
+`token`|**Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
+`type`|**Required** type of an action. Should be `create` to create a deployment
+`logs`|url to the deployment logs
+`environment`|environment to create a deployments in, default to `context.ref` without prefixes (`'refs/heads/'`, `'deploy-'`), i.e. branch name
+`environment_url`|link to the deployed application
+`description`| optional description, defaults to `"deployed by $context.actor"`
 
-#### `deployment_id`
+Outputs:
 
-The if of the created deployment.
+output | description
+- | -
+`deployment_id` | The `id` of the created deployment
 
-## Example usage
+#### Example usage
 
 ```yaml
-uses: npm/action-deploy@master
-with:
-  type: 'create'
-  token: ${{github.token}}
-  logs: 'http://your-app.com/deployment_logs'
-  environment: 'staging'
-  environment_url: 'http://staging.your-app.com'
+- name: create a deployment
+  uses: npm/action-deploy@v1
+  with:
+    type: create
+    token: ${{github.token}}
+    logs: https://your-app.com/deployment_logs
+    environment: staging
+    environment_url: https://staging.your-app.com
+```
+
+### finish
+
+Given in one of the previous steps you created a deployment, with `finish` you can set a status upon a deployment completion
+
+Inputs:
+
+parameter | description
+- | -
+`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
+`type` | **Required** type of an action. Should be `finish`
+`deployment_id` | **Required** the `id` of the a deployment to finish
+`status` | can be any status, e.g. failure/success
+
+Outputs: none
+
+#### Example usage
+
+```yaml
+- name: create a deployment
+  uses: npm/action-deploy@v1
+  id: create-deployment
+  with:
+    type: create
+    token: ${{github.token}}
+    logs: https://your-app.com/deployment_logs
+    environment: staging
+    environment_url: https://staging.your-app.com
+
+# add your deployment steps here
+- name: placeholder for actual deployment
+  run: sleep 10s
+
+- name: finish deployment
+  uses: npm/action-deploy@v1
+  with:
+    type: finish
+    token: ${{github.token}}
+    status: success
+    deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
+```
+
+### delete-all
+
+Allows deleting all deployments for a specific environment
+
+Inputs:
+
+parameter | description
+- | -
+`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
+`type` | **Required** type of an action. Should be `delete-all`
+`environment` | environment to delete all deployments in
+
+Outputs: none
+
+#### Example usage
+
+```yaml
+- name: delete all deployments in staging
+  uses: npm/action-deploy@v1
+  with:
+    type: delete-all
+    token: ${{github.token}}
+    environment: staging
+```
+
+### delete
+
+Given in one of the previous steps you created a deployment, with `delete` you can delete it by id
+
+Inputs:
+
+parameter | description
+- | -
+`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
+`type` | **Required** type of an action. Should be `delete`
+`deployment_id` | **Required** the `id` of the a deployment to delete
+
+Outputs: none
+
+#### Example usage
+
+```yaml
+- name: create a deployment
+  uses: npm/action-deploy@v1
+  id: create-deployment
+  with:
+    type: create
+    token: ${{github.token}}
+    logs: https://your-app.com/deployment_logs
+    environment: staging
+    environment_url: https://staging.your-app.com
+
+# add your deployment steps here
+- name: placeholder for actual deployment
+  run: sleep 10s
+
+- name: delete deployment
+  uses: npm/action-deploy@v1
+  with:
+    type: delete
+    token: ${{github.token}}
+    deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
 ```
 
 ## Development
 
 ### Prerequisites
 
-Install the dependencies  
+Install the dependencies
 ```bash
 $ npm install
 ```
@@ -40,23 +159,16 @@ Build the typescript and package it for distribution
 $ npm run build && npm run pack
 ```
 
-Run the tests :heavy_check_mark:  
+Run the tests :heavy_check_mark:
 ```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
+$ npm run build && npm test
 ```
 
-### Change action.yml
+### Update action.yml
 
 The action.yml contains defines the inputs and output for your action.
 
-Update the action.yml with your name, description, inputs and outputs for your action.
+Update the action.yml with description, inputs and outputs for your action.
 
 See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
 
@@ -69,9 +181,9 @@ import * as core from '@actions/core';
 ...
 
 async function run() {
-  try { 
+  try {
       ...
-  } 
+  }
   catch (error) {
     core.setFailed(error.message);
   }
@@ -84,7 +196,7 @@ See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/R
 
 ## Publish to a distribution branch
 
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
+Actions are run from GitHub repos so we will checkin the packed dist folder.
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
 ```bash
@@ -94,7 +206,7 @@ $ git commit -a -m "prod dependencies"
 $ git push origin releases/v1
 ```
 
-Your action is now published! :rocket: 
+Your action is now published! :rocket:
 
 See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
 
@@ -103,13 +215,15 @@ See the [versioning documentation](https://github.com/actions/toolkit/blob/maste
 You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml)])
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+- uses: ./
+  name: Delete all deployments
+  with:
+    token: ${{github.token}}
+    type: delete-all
 ```
 
 See the [actions tab](https://github.com/npm/action-deploy/actions) for runs of this action! :rocket:
 
-## Usage:
+## Deploy
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
