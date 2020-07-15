@@ -40,15 +40,33 @@ async function invalidatePreviousDeployments (
   )
 }
 
+async function getMainSha (client: GitHub, branch: string): Promise<string> {
+  try {
+    const response = await client.repos.getBranch({ ...context.repo, branch })
+    const sha = response.data.commit.sha
+    console.log(`${branch} branch sha: ${sha}`)
+    return sha
+  } catch (error) {
+    console.error(error.message)
+    return `no_${branch}`
+  }
+}
+
 export async function create (
   client: GitHub,
   logUrl: string,
   description: string,
   initialStatus: DeploymentStatus,
   environment: string,
-  environmentUrl: string
+  environmentUrl: string,
+  mainBranch: string
 ): Promise<string> {
   await invalidatePreviousDeployments(client, environment)
+
+  // get main branch sha to store in payload
+  const mainBranchSha = await getMainSha(client, mainBranch)
+
+  const payload = JSON.stringify({ actor: context.actor, main_sha: mainBranchSha })
 
   const deployment = await client.repos.createDeployment({
     ...context.repo,
@@ -58,7 +76,7 @@ export async function create (
     transient_environment: true,
     auto_merge: false,
     description,
-    payload: JSON.stringify({ actor: context.actor })
+    payload
   })
 
   console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`)

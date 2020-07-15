@@ -3542,7 +3542,7 @@ function getInput(name, options) {
     return result;
 }
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         let token;
         let type;
@@ -3552,6 +3552,7 @@ function run() {
         let environment;
         let environmentUrl;
         let deploymentId;
+        let mainBranch;
         const { actor, ref } = github.context;
         console.log('### context ###');
         console.log(`actor: ${actor}`);
@@ -3573,8 +3574,10 @@ function run() {
             console.log(`environment: ${environment}`);
             environmentUrl = (_f = getInput('environment_url')) !== null && _f !== void 0 ? _f : '';
             console.log(`environmentUrl: ${environmentUrl}`);
+            mainBranch = (_g = getInput('main_branch')) !== null && _g !== void 0 ? _g : 'master';
+            console.log(`main branch: ${mainBranch}`);
             const shouldRequireDeploymentId = type === 'finish' || type === 'delete';
-            deploymentId = (_g = getInput('deployment_id', { required: shouldRequireDeploymentId })) !== null && _g !== void 0 ? _g : '0';
+            deploymentId = (_h = getInput('deployment_id', { required: shouldRequireDeploymentId })) !== null && _h !== void 0 ? _h : '0';
             console.log(`deploymentId: ${deploymentId}`);
         }
         catch (error) {
@@ -3588,7 +3591,7 @@ function run() {
         switch (type) {
             case 'create':
                 try {
-                    deploymentId = yield create_1.create(client, logsUrl, description, status, environment, environmentUrl);
+                    deploymentId = yield create_1.create(client, logsUrl, description, status, environment, environmentUrl, mainBranch);
                     console.log(`setOutput::deployment_id: ${deploymentId}`);
                     core.setOutput('deployment_id', deploymentId);
                 }
@@ -8670,10 +8673,28 @@ function invalidatePreviousDeployments(client, environment) {
         })));
     });
 }
-function create(client, logUrl, description, initialStatus, environment, environmentUrl) {
+function getMainSha(client, branch) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield client.repos.getBranch(Object.assign(Object.assign({}, github_1.context.repo), { branch }));
+            const sha = response.data.commit.sha;
+            console.log(`${branch} branch sha: ${sha}`);
+            return sha;
+        }
+        catch (error) {
+            console.error(error.message);
+            return `no_${branch}`;
+        }
+    });
+}
+function create(client, logUrl, description, initialStatus, environment, environmentUrl, mainBranch) {
     return __awaiter(this, void 0, void 0, function* () {
         yield invalidatePreviousDeployments(client, environment);
-        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description, payload: JSON.stringify({ actor: github_1.context.actor }) }));
+        // get main branch sha to store in payload
+        const mainBranchSha = yield getMainSha(client, mainBranch);
+        const payload = JSON.stringify({ actor: github_1.context.actor, main_sha: mainBranchSha });
+        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description,
+            payload }));
         console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
         const status = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.data.id, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
         console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);

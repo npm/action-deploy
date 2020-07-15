@@ -8,6 +8,7 @@ import nock from 'nock'
 nock.disableNetConnect()
 
 const listDeploymentsReply = [] as any
+const getBranchReply = { commit: { sha: "fake-sha" } } as any
 const postDeploymentReply = { id: 42 } as any
 const postStatusReply = {} as any
 
@@ -40,6 +41,10 @@ describe('create', () => {
       .get('/repos/owner/repo/deployments?ref=refs%2Fheads%2Fmaster&environment=master')
       .reply(200, listDeploymentsReply)
 
+    const getMainBranchSha = nock('https://api.github.com')
+      .get('/repos/owner/repo/branches/master')
+      .reply(200, getBranchReply)
+
     const postDeployment = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments')
       .reply(200, postDeploymentReply)
@@ -53,6 +58,7 @@ describe('create', () => {
 
     // assert
     getListDeployments.done()
+    getMainBranchSha.done()
     postDeployment.done()
     postStatus.done()
   })
@@ -73,6 +79,10 @@ describe('create', () => {
       .get('/repos/owner/repo/deployments?ref=refs%2Fheads%2Fmaster&environment=master')
       .reply(200, listDeploymentsReply)
 
+    const getMainBranchSha = nock('https://api.github.com')
+      .get('/repos/owner/repo/branches/master')
+      .reply(200, getBranchReply)
+
     const postDeployment = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments')
       .reply(400, {"resource":"DeploymentStatus","code":"custom","field":"environment_url","message":"environment_url must use http(s) scheme"})
@@ -88,6 +98,7 @@ describe('create', () => {
     // assert
     getListDeployments.done()
     postDeployment.done()
+    getMainBranchSha.done()
     expect(setFailedSpy.mock.calls).toHaveLength(1)
   })
 })
