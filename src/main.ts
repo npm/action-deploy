@@ -28,6 +28,7 @@ export async function run (): Promise<void> {
   let environment: string
   let environmentUrl: string
   let deploymentId: string
+  let mainBranch: string
 
   const { actor, ref } = github.context
 
@@ -59,6 +60,9 @@ export async function run (): Promise<void> {
     environmentUrl = getInput('environment_url') ?? ''
     console.log(`environmentUrl: ${environmentUrl}`)
 
+    mainBranch = getInput('main_branch') ?? 'master'
+    console.log(`main branch: ${mainBranch}`)
+
     const shouldRequireDeploymentId = type === 'finish' || type === 'delete'
     deploymentId = getInput('deployment_id', { required: shouldRequireDeploymentId }) ?? '0'
     console.log(`deploymentId: ${deploymentId}`)
@@ -82,7 +86,8 @@ export async function run (): Promise<void> {
           description,
           status,
           environment,
-          environmentUrl
+          environmentUrl,
+          mainBranch
         )
         console.log(`setOutput::deployment_id: ${deploymentId}`)
         core.setOutput('deployment_id', deploymentId)

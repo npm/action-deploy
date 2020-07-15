@@ -26,6 +26,9 @@ inputs:
   environment_url:
     required: false
     description: link for the deployment (e.g. http://staging.your.app/status)
+  main_branch:
+    required: false
+    description: name of main branch of the repo, to get and store sha of the head commit and track diff being deployed
 runs:
   using: 'node12'
   main: 'dist/index.js'
