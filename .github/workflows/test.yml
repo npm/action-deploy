@@ -29,6 +29,9 @@ jobs:
       with:
         token: ${{github.token}}
         type: create
+        environment: test
+        logs: https://github.com/npm/action-deploy/actions?query=workflow%3Abuild-test
+        environment_url: https://npmjs.com
     - uses: ./
       name: Finish first deployment with success
       with:
@@ -49,6 +52,8 @@ jobs:
         token: ${{github.token}}
         type: create
         environment: test
+        logs: https://github.com/npm/action-deploy/actions?query=workflow%3Abuild-test
+        environment_url: https://npmjs.com
     - uses: ./
       name: Finish second deployment
       with:
