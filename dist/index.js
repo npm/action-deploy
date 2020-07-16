@@ -3603,7 +3603,7 @@ function run() {
                 break;
             case 'finish':
                 try {
-                    yield finish_1.finish(client, Number(deploymentId), status, logsUrl, environmentUrl);
+                    yield finish_1.finish(client, Number(deploymentId), status);
                 }
                 catch (error) {
                     core.error(error);
@@ -3658,9 +3658,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.finish = void 0;
 const github_1 = __webpack_require__(469);
-function finish(client, deploymentId, status, logUrl, environmentUrl) {
+function finish(client, deploymentId, status) {
     return __awaiter(this, void 0, void 0, function* () {
-        const statusResult = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: status, log_url: logUrl, environment_url: environmentUrl }));
+        const statuses = yield client.repos.listDeploymentStatuses(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId }));
+        const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
+        console.log(`last status for deployment_id '${deploymentId}': ${JSON.stringify(lastStatus, null, 2)}`);
+        const statusResult = yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: status, environment_url: lastStatus.environment_url, log_url: lastStatus.log_url }));
         console.log(`created deployment status: ${JSON.stringify(statusResult.data, null, 2)}`);
     });
 }
@@ -8668,7 +8671,7 @@ function invalidatePreviousDeployments(client, environment) {
             // invalidate the deployment
             if ((lastStatus === null || lastStatus === void 0 ? void 0 : lastStatus.state) === 'success') {
                 console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`);
-                yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id, state: 'inactive' }));
+                yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id, state: 'inactive', environment_url: lastStatus.environment_url, log_url: lastStatus.log_url }));
             }
         })));
     });

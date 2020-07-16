@@ -85,7 +85,7 @@ describe('create', () => {
 
     const postDeployment = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments')
-      .reply(400, {"resource":"DeploymentStatus","code":"custom","field":"environment_url","message":"environment_url must use http(s) scheme"})
+      .reply(400, { "resource": "DeploymentStatus", "code": "custom", "field": "environment_url", "message": "environment_url must use http(s) scheme" })
 
     // act
     try {
@@ -114,6 +114,7 @@ describe('finish', () => {
     inputs = {
       'token': 'fake-token',
       'type': 'finish',
+      'deployment_id': '42'
     }
     inputSpy = jest.spyOn(core, 'getInput')
     inputSpy.mockImplementation(name => inputs[name])
@@ -130,14 +131,19 @@ describe('finish', () => {
 
   it('200', async () => {
     // arrange
+    const listDeploymentStatus = nock('https://api.github.com')
+      .get('/repos/owner/repo/deployments/42/statuses')
+      .reply(200, [{ id: 10, environment_url: 'http://env.url', log_url: 'http://logs.url' }])
+
     const postDeploymentStatus = nock('https://api.github.com')
-      .post('/repos/owner/repo/deployments/0/statuses')
+      .post('/repos/owner/repo/deployments/42/statuses')
       .reply(200, postStatusReply)
 
     // act
     await main.run()
 
     // assert
+    listDeploymentStatus.done()
     postDeploymentStatus.done()
   })
 })

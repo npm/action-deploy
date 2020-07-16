@@ -102,9 +102,7 @@ export async function run (): Promise<void> {
         await finish(
           client,
           Number(deploymentId),
-          status,
-          logsUrl,
-          environmentUrl
+          status
         )
       } catch (error) {
         core.error(error)
