@@ -33,7 +33,9 @@ async function invalidatePreviousDeployments (
         await client.repos.createDeploymentStatus({
           ...context.repo,
           deployment_id: deployment.id,
-          state: 'inactive'
+          state: 'inactive',
+          environment_url: lastStatus.environment_url,
+          log_url: lastStatus.log_url
         })
       }
     })
