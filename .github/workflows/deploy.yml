@@ -16,6 +16,8 @@ jobs:
       with:
         type: create
         token: ${{github.token}}
+        logs: https://github.com/npm/action-deploy/actions?query=workflow%3Adeploy
+        environment_url: https://npmjs.com
 
     # add here an actual deployment
     - name: placeholder for actual deployment
