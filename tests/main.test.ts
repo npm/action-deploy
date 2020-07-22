@@ -1,8 +1,7 @@
 import * as core from '@actions/core'
-jest.mock('@actions/core')
-
 import * as github from '@actions/github'
 import * as main from '../src/main'
+import * as post from '../src/post'
 
 import nock from 'nock'
 nock.disableNetConnect()
@@ -103,9 +102,10 @@ describe('create', () => {
   })
 })
 
-describe('finish', () => {
+describe('complete', () => {
   beforeEach(() => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
+    process.env['STATE_deployment_id'] = '42'
 
     let inputs = {} as any
     let inputSpy: jest.SpyInstance
@@ -113,8 +113,7 @@ describe('finish', () => {
     // @actions/core
     inputs = {
       'token': 'fake-token',
-      'type': 'finish',
-      'deployment_id': '42'
+      'type': 'create'
     }
     inputSpy = jest.spyOn(core, 'getInput')
     inputSpy.mockImplementation(name => inputs[name])
@@ -140,7 +139,7 @@ describe('finish', () => {
       .reply(200, postStatusReply)
 
     // act
-    await main.run()
+    await post.post()
 
     // assert
     listDeploymentStatus.done()
