@@ -11,23 +11,16 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: create a deployment
-      uses: npm/action-deploy@v1
+      uses: npm/action-deploy@v2
       id: create-deployment
       with:
         type: create
         token: ${{github.token}}
         logs: https://github.com/npm/action-deploy/actions?query=workflow%3Adeploy
         environment_url: https://npmjs.com
+        job_status: ${{job.status}}
 
     # add here an actual deployment
     - name: placeholder for actual deployment
       run: sleep 10s
-
-    - name: finish deployment
-      uses: npm/action-deploy@v1
-      with:
-        type: finish
-        token: ${{github.token}}
-        status: success
-        deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
 
