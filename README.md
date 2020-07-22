@@ -31,7 +31,7 @@ Outputs:
 
 ```yaml
 - name: create a deployment
-  uses: npm/action-deploy@v1
+  uses: npm/action-deploy@v2
   with:
     type: create
     token: ${{github.token}}
@@ -59,7 +59,7 @@ Outputs: none
 
 ```yaml
 - name: delete all deployments in staging
-  uses: npm/action-deploy@v1
+  uses: npm/action-deploy@v2
   with:
     type: delete-all
     token: ${{github.token}}
@@ -84,7 +84,7 @@ Outputs: none
 
 ```yaml
 - name: create a deployment
-  uses: npm/action-deploy@v1
+  uses: npm/action-deploy@v2
   id: create-deployment
   with:
     type: create
@@ -92,13 +92,14 @@ Outputs: none
     logs: https://your-app.com/deployment_logs
     environment: staging
     environment_url: https://staging.your-app.com
+    job_status: ${{job.status}}
 
 # add your deployment steps here
 - name: placeholder for actual deployment
   run: sleep 10s
 
 - name: delete deployment
-  uses: npm/action-deploy@v1
+  uses: npm/action-deploy@v2
   with:
     type: delete
     token: ${{github.token}}
