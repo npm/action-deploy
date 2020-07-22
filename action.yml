@@ -7,7 +7,7 @@ inputs:
     description: GitHub token
   type:
     required: true
-    description: a type of deployment action to perform, can be 'create', 'delete', 'delete-all' and 'finish'
+    description: a type of deployment action to perform, can be 'create', 'delete' and 'delete-all'
   logs:
     required: false
     description: url to deployment logs
@@ -16,10 +16,10 @@ inputs:
     description: description of a deployment
   deployment_id:
     required: false
-    description: an id for deployment if 'delete' or 'finish' type is used
+    description: an id for deployment if 'delete' type is used
   status:
     required: false
-    description: status for created or finished deployment
+    description: status for created deployment
   environment:
     required: false
     description: environment to create or delete all deployments in, default to context.ref without prefixes ('refs/heads/', 'deploy-'), i.e. branch name
@@ -29,6 +29,10 @@ inputs:
   main_branch:
     required: false
     description: name of main branch of the repo, to get and store sha of the head commit and track diff being deployed
+  job_status:
+    required: false
+    description: pass `{{job.status}}` to set the deployment completion status post script accordingly
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'dist/main/index.js'
+  post: 'dist/post/index.js'

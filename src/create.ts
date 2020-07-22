@@ -1,5 +1,5 @@
 import { context, GitHub } from '@actions/github'
-import { DeploymentStatus } from './deployment-status'
+import { DeploymentStatus } from './utils'
 
 async function invalidatePreviousDeployments (
   client: GitHub,

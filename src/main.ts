@@ -1,23 +1,10 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { create } from './create'
-import { finish } from './finish'
+
 import { deleteAll } from './delete-all'
 import { deleteDeployment } from './delete'
-
-import { DeploymentStatus } from './deployment-status'
-
-type ActionType = 'create' | 'delete' | 'delete-all' | 'finish'
-
-// nullify getInput empty results
-// to allow coalescence ?? operator
-function getInput (name: string, options?: core.InputOptions): string | null {
-  const result = core.getInput(name, options)
-  if (result === '') {
-    return null
-  }
-  return result
-}
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME } from './utils'
 
 export async function run (): Promise<void> {
   let token: string
@@ -32,13 +19,13 @@ export async function run (): Promise<void> {
 
   const { actor, ref } = github.context
 
-  console.log('### context ###')
+  console.log('### main.context ###')
   console.log(`actor: ${actor}`)
   console.log(`ref: ${ref}`)
   console.log('\n')
 
   try {
-    console.log('### inputs ###')
+    console.log('### main.inputs ###')
     token = getInput('token', { required: true }) ?? ''
 
     type = getInput('type', { required: true }) as ActionType
@@ -63,8 +50,8 @@ export async function run (): Promise<void> {
     mainBranch = getInput('main_branch') ?? 'master'
     console.log(`main branch: ${mainBranch}`)
 
-    const shouldRequireDeploymentId = type === 'finish' || type === 'delete'
-    deploymentId = getInput('deployment_id', { required: shouldRequireDeploymentId }) ?? '0'
+    const shouldRequireDeploymentId = type === 'delete'
+    deploymentId = getInput(DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0'
     console.log(`deploymentId: ${deploymentId}`)
   } catch (error) {
     core.error(error)
@@ -89,24 +76,12 @@ export async function run (): Promise<void> {
           environmentUrl,
           mainBranch
         )
-        console.log(`setOutput::deployment_id: ${deploymentId}`)
-        core.setOutput('deployment_id', deploymentId)
+        console.log(`saveState::${DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`)
+        core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
+        core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
       } catch (error) {
         core.error(error)
         core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
-        throw error
-      }
-      break
-    case 'finish':
-      try {
-        await finish(
-          client,
-          Number(deploymentId),
-          status
-        )
-      } catch (error) {
-        core.error(error)
-        core.setFailed(`Finish deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
       break

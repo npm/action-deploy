@@ -2,7 +2,6 @@
 
 Features:
 - create a deployment (and invalidate all previous deployments)
-- finish a deployment (with success/failure state)
 - delete all deployments in specific environment
 - delete a deployment by id
 
@@ -17,9 +16,10 @@ Inputs:
 `token`|**Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
 `type`|**Required** type of an action. Should be `create` to create a deployment
 `logs`|url to the deployment logs
-`environment`|environment to create a deployments in, default to `context.ref` without prefixes (`'refs/heads/'`, `'deploy-'`), i.e. branch name
+`environment`|environment to create a deployments in, default to `$context.ref` without prefixes (`'refs/heads/'`, `'deploy-'`), i.e. branch name
 `environment_url`|link to the deployed application
 `description`|optional description, defaults to `"deployed by $context.actor"`
+`job_status`|pass `${{job.status}}` to set the deployment completion status post script accordingly
 
 Outputs:
 
@@ -38,47 +38,7 @@ Outputs:
     logs: https://your-app.com/deployment_logs
     environment: staging
     environment_url: https://staging.your-app.com
-```
-
-### finish
-
-Given in one of the previous steps you created a deployment, with `finish` you can set a status upon a deployment completion
-
-Inputs:
-
-|parameter | description
-|- | -
-`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
-`type` | **Required** type of an action. Should be `finish`
-`deployment_id` | **Required** the `id` of the a deployment to finish
-`status` | can be any status, e.g. failure/success
-
-Outputs: none
-
-#### Example usage
-
-```yaml
-- name: create a deployment
-  uses: npm/action-deploy@v1
-  id: create-deployment
-  with:
-    type: create
-    token: ${{github.token}}
-    logs: https://your-app.com/deployment_logs
-    environment: staging
-    environment_url: https://staging.your-app.com
-
-# add your deployment steps here
-- name: placeholder for actual deployment
-  run: sleep 10s
-
-- name: finish deployment
-  uses: npm/action-deploy@v1
-  with:
-    type: finish
-    token: ${{github.token}}
-    status: success
-    deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
+    job_status: ${{job.status}} # use this to track success of the deployment in post script
 ```
 
 ### delete-all

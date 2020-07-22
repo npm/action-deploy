@@ -1,7 +1,7 @@
 import { context, GitHub } from '@actions/github'
-import { DeploymentStatus } from './deployment-status'
+import { DeploymentStatus } from './utils'
 
-export async function finish (
+export async function complete (
   client: GitHub,
   deploymentId: number,
   status: DeploymentStatus

@@ -23,6 +23,7 @@ jobs:
       with:
         token: ${{github.token}}
         type: delete-all
+        environment: test
     - uses: ./
       name: Create first deployment
       id: create-first
@@ -32,13 +33,7 @@ jobs:
         environment: test
         logs: https://github.com/npm/action-deploy/actions?query=workflow%3Abuild-test
         environment_url: https://npmjs.com
-    - uses: ./
-      name: Finish first deployment with success
-      with:
-        token: ${{github.token}}
-        type: finish
-        status: success
-        deployment_id: ${{steps.create-first.outputs.deployment_id}}
+        job_status: ${{job.status}}
     - uses: ./
       name: Delete first deployment
       with:
@@ -54,10 +49,4 @@ jobs:
         environment: test
         logs: https://github.com/npm/action-deploy/actions?query=workflow%3Abuild-test
         environment_url: https://npmjs.com
-    - uses: ./
-      name: Finish second deployment
-      with:
-        token: ${{github.token}}
-        type: finish
-        status: success
-        deployment_id: ${{steps.create-second.outputs.deployment_id}}
+        job_status: ${{job.status}}
