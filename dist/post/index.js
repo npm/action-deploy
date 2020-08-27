@@ -12430,7 +12430,8 @@ function post() {
                         const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
                         const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
                         const commitUrl = `${repoUrl}/commit/${sha}`;
-                        const text = `Deployment of commit [${sha.slice(0, 6)}](${commitUrl}) for [${repo.repo}](${repoUrl}) completed with status \`${status}\` to environment [${environment}](${deploymentUrl}) by @${actor}`;
+                        // message formatting reference - https://api.slack.com/reference/surfaces/formatting
+                        const text = `Deployment of commit <${commitUrl}|${sha.slice(0, 6)}> for <${repoUrl}|${repo.repo}> completed with status \`${status}\` to environment <${deploymentUrl}|${environment}> by @${actor}`;
                         const slackClient = new web_api_1.WebClient(slackToken);
                         const slackParams = {
                             channel: slackChannel,
@@ -12439,6 +12440,7 @@ function post() {
                             text
                         };
                         console.log(`Posting Slack message: ${text}`);
+                        // API description - https://api.slack.com/methods/chat.postMessage
                         yield slackClient.chat.postMessage(slackParams);
                         console.log(`Slack message posted to channel: ${slackChannel}`);
                     }
