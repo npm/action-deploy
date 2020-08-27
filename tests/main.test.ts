@@ -12,8 +12,6 @@ const postDeploymentReply = { id: 42 } as any
 const postStatusReply = {} as any
 
 describe('create', () => {
-
-
   beforeEach(() => {
     process.env['GITHUB_REPOSITORY'] = 'owner/repo'
 
@@ -104,7 +102,6 @@ describe('create', () => {
 
 describe('complete', () => {
   beforeEach(() => {
-    process.env['GITHUB_REPOSITORY'] = 'owner/repo'
     process.env['STATE_deployment_id'] = '42'
 
     let inputs = {} as any
@@ -113,7 +110,9 @@ describe('complete', () => {
     // @actions/core
     inputs = {
       'token': 'fake-token',
-      'type': 'create'
+      'type': 'create',
+      'slack_token': 'fake-slack-token',
+      'slack_channel': 'fake-slack-channel'
     }
     inputSpy = jest.spyOn(core, 'getInput')
     inputSpy.mockImplementation(name => inputs[name])
@@ -121,6 +120,8 @@ describe('complete', () => {
     // @actions/github
     Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
     Object.defineProperty(github.context, 'ref', { get: () => 'refs/heads/master' })
+    Object.defineProperty(github.context, 'sha', { get: () => 'fake-sha-123' })
+    Object.defineProperty(github.context, 'repo', { get: () => { return { owner: 'owner', repo: 'repo' } } })
   })
 
   afterEach(() => {
@@ -132,11 +133,15 @@ describe('complete', () => {
     // arrange
     const listDeploymentStatus = nock('https://api.github.com')
       .get('/repos/owner/repo/deployments/42/statuses')
-      .reply(200, [{ id: 10, environment_url: 'http://env.url', log_url: 'http://logs.url' }])
+      .reply(200, [{ id: 10, environment_url: 'https://env.url', log_url: 'http://logs.url' }])
 
     const postDeploymentStatus = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments/42/statuses')
       .reply(200, postStatusReply)
+
+    const slack = nock('https://slack.com')
+      .post('/api/chat.postMessage')
+      .reply(200, { ok: true })
 
     // act
     await post.post()
@@ -144,6 +149,7 @@ describe('complete', () => {
     // assert
     listDeploymentStatus.done()
     postDeploymentStatus.done()
+    slack.done()
   })
 })
 

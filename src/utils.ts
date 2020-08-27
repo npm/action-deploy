@@ -22,3 +22,10 @@ export function getInput (name: string, options?: core.InputOptions): string | n
   }
   return result
 }
+
+export function getEnvironment (ref: string): string {
+  // default to branch name w/o `deploy-` prefix
+  const environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '')
+  console.log(`environment: ${environment}`)
+  return environment
+}

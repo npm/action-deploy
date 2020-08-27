@@ -4,7 +4,7 @@ import { create } from './create'
 
 import { deleteAll } from './delete-all'
 import { deleteDeployment } from './delete'
-import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME } from './utils'
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment } from './utils'
 
 export async function run (): Promise<void> {
   let token: string
@@ -40,9 +40,7 @@ export async function run (): Promise<void> {
     status = (getInput('status') ?? 'in_progress') as DeploymentStatus
     console.log(`status: ${status}`)
 
-    // default to branch name w/o `deploy-` prefix
-    environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '')
-    console.log(`environment: ${environment}`)
+    environment = getEnvironment(ref)
 
     environmentUrl = getInput('environment_url') ?? ''
     console.log(`environmentUrl: ${environmentUrl}`)

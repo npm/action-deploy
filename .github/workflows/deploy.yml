@@ -19,6 +19,8 @@ jobs:
         logs: https://github.com/npm/action-deploy/actions?query=workflow%3Adeploy
         environment_url: https://npmjs.com
         job_status: ${{job.status}}
+        slack_token: ${{secrets.SLACK_NPM_ROBOT}}
+        slack_channel: npm-ops
 
     # add here an actual deployment
     - name: placeholder for actual deployment

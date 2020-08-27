@@ -3533,7 +3533,7 @@ const delete_all_1 = __webpack_require__(832);
 const delete_1 = __webpack_require__(583);
 const utils_1 = __webpack_require__(611);
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g;
     return __awaiter(this, void 0, void 0, function* () {
         let token;
         let type;
@@ -3560,15 +3560,13 @@ function run() {
             console.log(`description: ${description}`);
             status = ((_d = utils_1.getInput('status')) !== null && _d !== void 0 ? _d : 'in_progress');
             console.log(`status: ${status}`);
-            // default to branch name w/o `deploy-` prefix
-            environment = (_e = utils_1.getInput('environment')) !== null && _e !== void 0 ? _e : ref.replace('refs/heads/', '').replace(/^deploy-/, '');
-            console.log(`environment: ${environment}`);
-            environmentUrl = (_f = utils_1.getInput('environment_url')) !== null && _f !== void 0 ? _f : '';
+            environment = utils_1.getEnvironment(ref);
+            environmentUrl = (_e = utils_1.getInput('environment_url')) !== null && _e !== void 0 ? _e : '';
             console.log(`environmentUrl: ${environmentUrl}`);
-            mainBranch = (_g = utils_1.getInput('main_branch')) !== null && _g !== void 0 ? _g : 'master';
+            mainBranch = (_f = utils_1.getInput('main_branch')) !== null && _f !== void 0 ? _f : 'master';
             console.log(`main branch: ${mainBranch}`);
             const shouldRequireDeploymentId = type === 'delete';
-            deploymentId = (_h = utils_1.getInput(utils_1.DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId })) !== null && _h !== void 0 ? _h : '0';
+            deploymentId = (_g = utils_1.getInput(utils_1.DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId })) !== null && _g !== void 0 ? _g : '0';
             console.log(`deploymentId: ${deploymentId}`);
         }
         catch (error) {
@@ -8522,7 +8520,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInput = exports.DEPLOYMENT_ID_STATE_NAME = void 0;
+exports.getEnvironment = exports.getInput = exports.DEPLOYMENT_ID_STATE_NAME = void 0;
 const core = __importStar(__webpack_require__(470));
 exports.DEPLOYMENT_ID_STATE_NAME = 'deployment_id';
 // nullify getInput empty results
@@ -8535,6 +8533,14 @@ function getInput(name, options) {
     return result;
 }
 exports.getInput = getInput;
+function getEnvironment(ref) {
+    var _a;
+    // default to branch name w/o `deploy-` prefix
+    const environment = (_a = getInput('environment')) !== null && _a !== void 0 ? _a : ref.replace('refs/heads/', '').replace(/^deploy-/, '');
+    console.log(`environment: ${environment}`);
+    return environment;
+}
+exports.getEnvironment = getEnvironment;
 
 
 /***/ }),
