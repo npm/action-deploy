@@ -44,13 +44,15 @@ export async function postSlackNotification (
   const { actor, repo, sha, payload } = context
 
   try {
+    const afterSha = sha.slice(0, 7)
     const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`
     const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`
     const commitUrl = `${repoUrl}/commit/${sha}`
-    let commitText = `commit <${commitUrl}|${sha.slice(0, 7)}>`
+    let commitText = `commit <${commitUrl}|${afterSha}>`
     if (payload !== null && typeof payload.compare === 'string') {
-      const shortDiff = (payload.compare ?? '').replace(/^.*\//, '')
-      commitText = `diff <${shortDiff}|${payload.compare}>`
+      const beforeSha = (payload.before as string ?? '').slice(0, 7)
+      const afterShaMessage = (payload.head_commit as {[key: string]: any} ?? {}).message as string
+      commitText = `diff <${beforeSha} ⇢ 🚀${afterSha}🚀|${payload.compare}> \`${afterShaMessage}\``
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting

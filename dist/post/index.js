@@ -11952,20 +11952,22 @@ function getEnvironment(ref) {
 }
 exports.getEnvironment = getEnvironment;
 function postSlackNotification(slackToken, slackChannel, environment, status, context) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
             return;
         }
         const { actor, repo, sha, payload } = context;
         try {
+            const afterSha = sha.slice(0, 7);
             const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
             const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
             const commitUrl = `${repoUrl}/commit/${sha}`;
-            let commitText = `commit <${commitUrl}|${sha.slice(0, 7)}>`;
+            let commitText = `commit <${commitUrl}|${afterSha}>`;
             if (payload !== null && typeof payload.compare === 'string') {
-                const shortDiff = ((_a = payload.compare) !== null && _a !== void 0 ? _a : '').replace(/^.*\//, '');
-                commitText = `diff <${shortDiff}|${payload.compare}>`;
+                const beforeSha = ((_a = payload.before) !== null && _a !== void 0 ? _a : '').slice(0, 7);
+                const afterShaMessage = ((_b = payload.head_commit) !== null && _b !== void 0 ? _b : {}).message;
+                commitText = `diff <${beforeSha} ⇢ 🚀${afterSha}🚀|${payload.compare}> \`${afterShaMessage}\``;
             }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
             const text = `<${repoUrl}|${repo.repo}> deployment completed to environment <${deploymentUrl}|${environment}> with status \`${status}\` and ${commitText} by @${actor}`;
