@@ -1,8 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { complete } from './complete'
-import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment } from './utils'
-import { WebClient, ChatPostMessageArguments } from '@slack/web-api'
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment, postSlackNotification } from './utils'
 
 export async function post (): Promise<void> {
   let token: string
@@ -62,29 +61,7 @@ export async function post (): Promise<void> {
       }
 
       // Post Slack notification
-      if (slackToken !== '' && slackChannel !== '') {
-        try {
-          const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`
-          const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`
-          const commitUrl = `${repoUrl}/commit/${sha}`
-
-          // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-          const text = `Deployment of commit <${commitUrl}|${sha.slice(0, 6)}> for <${repoUrl}|${repo.repo}> completed with status \`${status}\` to environment <${deploymentUrl}|${environment}> by @${actor}`
-          const slackClient = new WebClient(slackToken)
-          const slackParams: ChatPostMessageArguments = {
-            channel: slackChannel,
-            unfurl_links: false,
-            mrkdwn: true,
-            text
-          }
-          console.log(`Posting Slack message: ${text}`)
-          // API description - https://api.slack.com/methods/chat.postMessage
-          await slackClient.chat.postMessage(slackParams)
-          console.log(`Slack message posted to channel: ${slackChannel}`)
-        } catch (error) {
-          core.error(error)
-        }
-      }
+      await postSlackNotification(slackToken, slackChannel, repo, sha, environment, status, actor)
 
       try {
         await complete(client, Number(deploymentId), status)
