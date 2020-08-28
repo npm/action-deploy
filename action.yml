@@ -32,6 +32,12 @@ inputs:
   job_status:
     required: false
     description: pass `{{job.status}}` to set the deployment completion status post script accordingly
+  slack_token:
+    required: false
+    description: pass to authorize deployment completion messages to Slack
+  slack_channel:
+    required: false
+    description: name of channel to post deployment completion messages
 runs:
   using: 'node12'
   main: 'dist/main/index.js'

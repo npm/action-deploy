@@ -20,6 +20,8 @@ Inputs:
 `environment_url`|link to the deployed application
 `description`|optional description, defaults to `"deployed by $context.actor"`
 `job_status`|pass `${{job.status}}` to set the deployment completion status post script accordingly
+`slack_token`|optional token of slack integration to post messages with deployment results
+`slack_channel`|optional slack channel name (both `slack_token` and `slack_channel` are required to post a message)
 
 Outputs:
 
