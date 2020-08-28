@@ -12100,10 +12100,11 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
             if (payload !== null && typeof payload.compare === 'string') {
                 const beforeSha = ((_a = payload.before) !== null && _a !== void 0 ? _a : '').slice(0, 7);
                 const afterShaMessage = ((_b = payload.head_commit) !== null && _b !== void 0 ? _b : {}).message;
-                commitText = `diff <${beforeSha} ⇢ 🚀${afterSha}🚀|${payload.compare}> \`${afterShaMessage}\``;
+                commitText = `diff <${payload.compare}|${beforeSha} ⇢ 🚀${afterSha}🚀> \`${afterShaMessage}\``;
             }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            const text = `<${repoUrl}|${repo.repo}> deployment completed to environment <${deploymentUrl}|${environment}> with status \`${status}\` and ${commitText} by @${actor}`;
+            const statusIcon = status === 'success' ? '✅' : '❌';
+            const text = `<${repoUrl}|${repo.repo}> deployment completed to <${deploymentUrl}|${environment}> environment with ${status}${statusIcon} and ${commitText} by @${actor}`;
             const slackClient = new web_api_1.WebClient(slackToken);
             const slackParams = {
                 channel: slackChannel,

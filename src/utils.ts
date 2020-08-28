@@ -36,7 +36,7 @@ export async function postSlackNotification (
   slackToken: string,
   slackChannel: string,
   environment: string,
-  status: string,
+  status: DeploymentStatus,
   context: Context): Promise<void> {
   if (slackToken === '' || slackChannel === '') {
     return
@@ -52,11 +52,12 @@ export async function postSlackNotification (
     if (payload !== null && typeof payload.compare === 'string') {
       const beforeSha = (payload.before as string ?? '').slice(0, 7)
       const afterShaMessage = (payload.head_commit as {[key: string]: any} ?? {}).message as string
-      commitText = `diff <${beforeSha} ⇢ 🚀${afterSha}🚀|${payload.compare}> \`${afterShaMessage}\``
+      commitText = `diff <${payload.compare}|${beforeSha} ⇢ 🚀${afterSha}🚀> \`${afterShaMessage}\``
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    const text = `<${repoUrl}|${repo.repo}> deployment completed to environment <${deploymentUrl}|${environment}> with status \`${status}\` and ${commitText} by @${actor}`
+    const statusIcon = status === 'success' ? '✅' : '❌'
+    const text = `<${repoUrl}|${repo.repo}> deployment completed to <${deploymentUrl}|${environment}> environment with ${status}${statusIcon} and ${commitText} by @${actor}`
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
       channel: slackChannel,
