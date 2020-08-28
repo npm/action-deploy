@@ -1,6 +1,16 @@
 import * as core from '@actions/core'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
 import { Context } from '@actions/github/lib/context'
+import { WebhookPayload } from '@actions/github/lib/interfaces'
+
+export interface WebhookPayloadForPushes extends WebhookPayload {
+  after: string
+  before: string
+  compare?: string
+  head_commit: {
+    message?: string
+  }
+}
 
 export type DeploymentStatus =
   | 'error'
@@ -44,20 +54,21 @@ export async function postSlackNotification (
   const { actor, repo, sha, payload } = context
 
   try {
+    const statusIcon = status === 'success' ? '✅' : '❌'
     const afterSha = sha.slice(0, 7)
     const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`
     const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`
     const commitUrl = `${repoUrl}/commit/${sha}`
-    let commitText = `commit <${commitUrl}|${afterSha}>`
-    if (payload !== null && typeof payload.compare === 'string') {
-      const beforeSha = (payload.before as string ?? '').slice(0, 7)
-      const afterShaMessage = (payload.head_commit as {[key: string]: any} ?? {}).message as string
-      commitText = `diff <${payload.compare}|${beforeSha} ⇢ 🚀${afterSha}🚀> \`${afterShaMessage}\``
+    let commitText = `<${commitUrl}|${afterSha}>`
+    const payloadForPushes = payload as WebhookPayloadForPushes
+    if (payloadForPushes?.compare !== undefined) {
+      const beforeSha = payloadForPushes.before.slice(0, 7)
+      const afterShaMessage = payloadForPushes.head_commit.message ?? ''
+      commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${afterShaMessage}>`
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    const statusIcon = status === 'success' ? '✅' : '❌'
-    const text = `<${repoUrl}|${repo.repo}> deployment completed to <${deploymentUrl}|${environment}> environment with ${status}${statusIcon} and ${commitText} by @${actor}`
+    const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> completed with ${status} ${statusIcon} by @${actor} - ${commitText}`
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
       channel: slackChannel,
