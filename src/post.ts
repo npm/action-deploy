@@ -19,7 +19,8 @@ export async function post (): Promise<void> {
   console.log(`ref: ${ref}`)
   console.log(`owner: ${repo.owner}`)
   console.log(`repo: ${repo.repo}`)
-  console.log(`sha: ${sha}`)
+  console.log(`payload: ${JSON.stringify(github.context.payload)}`)
+  console.log(`new_sha: ${sha}`)
   console.log('\n')
 
   try {
