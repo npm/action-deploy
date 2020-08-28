@@ -11951,17 +11951,24 @@ function getEnvironment(ref) {
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, repo, sha, environment, status, actor) {
+function postSlackNotification(slackToken, slackChannel, environment, status, context) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
             return;
         }
+        const { actor, repo, sha, payload } = context;
         try {
             const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
             const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
             const commitUrl = `${repoUrl}/commit/${sha}`;
+            let commitText = `commit <${commitUrl}|${sha.slice(0, 7)}>`;
+            if (payload !== null && typeof payload.compare === 'string') {
+                const shortDiff = ((_a = payload.compare) !== null && _a !== void 0 ? _a : '').replace(/^.*\//, '');
+                commitText = `diff <${shortDiff}|${payload.compare}>`;
+            }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            const text = `Deployment of commit <${commitUrl}|${sha.slice(0, 6)}> for <${repoUrl}|${repo.repo}> completed with status \`${status}\` to environment <${deploymentUrl}|${environment}> by @${actor}`;
+            const text = `<${repoUrl}|${repo.repo}> deployment completed to environment <${deploymentUrl}|${environment}> with status \`${status}\` and ${commitText} by @${actor}`;
             const slackClient = new web_api_1.WebClient(slackToken);
             const slackParams = {
                 channel: slackChannel,
@@ -12429,7 +12436,7 @@ function post() {
         console.log(`ref: ${ref}`);
         console.log(`owner: ${repo.owner}`);
         console.log(`repo: ${repo.repo}`);
-        console.log(`payload: ${JSON.stringify(github.context.payload)}`);
+        console.log(`compare: ${github.context.payload.compare}`);
         console.log(`new_sha: ${sha}`);
         console.log('\n');
         try {
@@ -12464,7 +12471,7 @@ function post() {
                     return;
                 }
                 // Post Slack notification
-                yield utils_1.postSlackNotification(slackToken, slackChannel, repo, sha, environment, status, actor);
+                yield utils_1.postSlackNotification(slackToken, slackChannel, environment, status, github.context);
                 try {
                     yield complete_1.complete(client, Number(deploymentId), status);
                 }

@@ -19,7 +19,7 @@ export async function post (): Promise<void> {
   console.log(`ref: ${ref}`)
   console.log(`owner: ${repo.owner}`)
   console.log(`repo: ${repo.repo}`)
-  console.log(`payload: ${JSON.stringify(github.context.payload)}`)
+  console.log(`compare: ${github.context.payload.compare as string}`)
   console.log(`new_sha: ${sha}`)
   console.log('\n')
 
@@ -62,7 +62,7 @@ export async function post (): Promise<void> {
       }
 
       // Post Slack notification
-      await postSlackNotification(slackToken, slackChannel, repo, sha, environment, status, actor)
+      await postSlackNotification(slackToken, slackChannel, environment, status, github.context)
 
       try {
         await complete(client, Number(deploymentId), status)

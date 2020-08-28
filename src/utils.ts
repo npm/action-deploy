@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
+import { Context } from '@actions/github/lib/context'
 
 export type DeploymentStatus =
   | 'error'
@@ -34,21 +35,26 @@ export function getEnvironment (ref: string): string {
 export async function postSlackNotification (
   slackToken: string,
   slackChannel: string,
-  repo: { owner: string, repo: string },
-  sha: string,
   environment: string,
   status: string,
-  actor: string): Promise<void> {
+  context: Context): Promise<void> {
   if (slackToken === '' || slackChannel === '') {
     return
   }
+  const { actor, repo, sha, payload } = context
+
   try {
     const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`
     const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`
     const commitUrl = `${repoUrl}/commit/${sha}`
+    let commitText = `commit <${commitUrl}|${sha.slice(0, 7)}>`
+    if (payload !== null && typeof payload.compare === 'string') {
+      const shortDiff = (payload.compare ?? '').replace(/^.*\//, '')
+      commitText = `diff <${shortDiff}|${payload.compare}>`
+    }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    const text = `Deployment of commit <${commitUrl}|${sha.slice(0, 6)}> for <${repoUrl}|${repo.repo}> completed with status \`${status}\` to environment <${deploymentUrl}|${environment}> by @${actor}`
+    const text = `<${repoUrl}|${repo.repo}> deployment completed to environment <${deploymentUrl}|${environment}> with status \`${status}\` and ${commitText} by @${actor}`
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
       channel: slackChannel,
