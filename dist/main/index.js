@@ -12084,17 +12084,28 @@ function getEnvironment(ref) {
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, repo, sha, environment, status, actor) {
+function postSlackNotification(slackToken, slackChannel, environment, status, context) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
             return;
         }
+        const { actor, repo, sha, payload } = context;
         try {
+            const statusIcon = status === 'success' ? '✅' : '❌';
+            const afterSha = sha.slice(0, 7);
             const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
             const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
             const commitUrl = `${repoUrl}/commit/${sha}`;
+            let commitText = `<${commitUrl}|${afterSha}>`;
+            const payloadForPushes = payload;
+            if ((payloadForPushes === null || payloadForPushes === void 0 ? void 0 : payloadForPushes.compare) !== undefined) {
+                const beforeSha = payloadForPushes.before.slice(0, 7);
+                const afterShaMessage = (_a = payloadForPushes.head_commit.message) !== null && _a !== void 0 ? _a : '';
+                commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${afterShaMessage}>`;
+            }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            const text = `Deployment of commit <${commitUrl}|${sha.slice(0, 6)}> for <${repoUrl}|${repo.repo}> completed with status \`${status}\` to environment <${deploymentUrl}|${environment}> by @${actor}`;
+            const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by @${actor} completed with ${status} ${statusIcon} - ${commitText}`;
             const slackClient = new web_api_1.WebClient(slackToken);
             const slackParams = {
                 channel: slackChannel,
