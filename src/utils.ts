@@ -64,7 +64,8 @@ export async function postSlackNotification (
     if (payloadForPushes?.compare !== undefined) {
       const beforeSha = payloadForPushes.before.slice(0, 7)
       const afterShaMessage = payloadForPushes.head_commit.message ?? ''
-      commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${afterShaMessage}>`
+      const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60) // keep only some first symbols of the first line
+      commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
@@ -83,4 +84,8 @@ export async function postSlackNotification (
   } catch (error) {
     core.error(error)
   }
+}
+
+function trimEllipsis (str: string, length: number): string {
+  return str.length > length ? `${str.substring(0, length)}...` : str
 }

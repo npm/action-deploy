@@ -1,6 +1,6 @@
 {
   "name": "action-deploy",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "private": true,
   "description": "Action to manage GitHub deployments",
   "main": "lib/main.js",
