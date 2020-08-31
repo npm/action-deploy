@@ -12102,7 +12102,8 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
             if ((payloadForPushes === null || payloadForPushes === void 0 ? void 0 : payloadForPushes.compare) !== undefined) {
                 const beforeSha = payloadForPushes.before.slice(0, 7);
                 const afterShaMessage = (_a = payloadForPushes.head_commit.message) !== null && _a !== void 0 ? _a : '';
-                commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${afterShaMessage}>`;
+                const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60); // keep only some first symbols of the first line
+                commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
             }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
             const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by @${actor} completed with ${status} ${statusIcon} - ${commitText}`;
@@ -12124,6 +12125,9 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
     });
 }
 exports.postSlackNotification = postSlackNotification;
+function trimEllipsis(str, length) {
+    return str.length > length ? `${str.substring(0, length)}...` : str;
+}
 
 
 /***/ }),
