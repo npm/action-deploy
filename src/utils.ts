@@ -69,7 +69,7 @@ export async function postSlackNotification (
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by @${actor} completed with ${status} ${statusIcon} - ${commitText}`
+    const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor}> completed with ${status} ${statusIcon} - ${commitText}`
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
       channel: slackChannel,

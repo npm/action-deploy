@@ -12106,7 +12106,7 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
                 commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
             }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by @${actor} completed with ${status} ${statusIcon} - ${commitText}`;
+            const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor}> completed with ${status} ${statusIcon} - ${commitText}`;
             const slackClient = new web_api_1.WebClient(slackToken);
             const slackParams = {
                 channel: slackChannel,
