@@ -118,7 +118,7 @@ describe('complete', () => {
     inputSpy.mockImplementation(name => inputs[name])
 
     // @actions/github
-    Object.defineProperty(github.context, 'actor', { get: () => 'fake-actor' })
+    Object.defineProperty(github.context, 'actor', { get: () => 'Fake-Actor' })
     Object.defineProperty(github.context, 'ref', { get: () => 'refs/heads/master' })
     Object.defineProperty(github.context, 'sha', { get: () => 'fake-sha-123' })
     Object.defineProperty(github.context, 'repo', { get: () => { return { owner: 'owner', repo: 'repo' } } })
@@ -139,10 +139,9 @@ describe('complete', () => {
       .post('/repos/owner/repo/deployments/42/statuses')
       .reply(200, postStatusReply)
 
-    const slack = nock('https://slack.com')
-      .post('/api/chat.postMessage')
-      .reply(200, { ok: true })
-
+      const slack = nock('https://slack.com')
+          .post('/api/chat.postMessage', body => body.text.includes('<@fake-actor>'))
+          .reply(200, { ok: true })
     // act
     await post.post()
 
