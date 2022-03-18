@@ -69,14 +69,9 @@ export async function postSlackNotification (
       commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`
     }
 
-    let text
-    const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    if (status === 'success') {
-      text = `${baseText}\n\n- :toolbox: Check out our <${dataDogDeploymentConfidenceDashboard}|**deployment confidence dashboard**> so you are the first to know if anything is broken.`
-    } else {
-      text = baseText
-    }
+    const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`
+    const text = status === 'success' ? `${baseText}\n\n- :toolbox: Check out our <${dataDogDeploymentConfidenceDashboard}|**deployment confidence dashboard**> so you are the first to know if anything is broken.` : baseText
 
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
