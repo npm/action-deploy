@@ -13883,7 +13883,7 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
         try {
             const statusIcon = status === 'success' ? '✅' : '❌';
             const afterSha = sha.slice(0, 7);
-            const dataDogDeploymentConfidenceDashboard = 'https://app.datadoghq.com/dashboard/vbe-7ch-b6q/npm-inc-registry';
+            const dataDogDeploymentConfidenceDashboard = environment === 'production' ? 'https://app.datadoghq.com/dashboard/vbe-7ch-b6q/npm-inc-registry' : 'https://app.datadoghq.com/dashboard/v49-ema-xip/npm-inc-registry-staging';
             const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
             const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
             const commitUrl = `${repoUrl}/commit/${sha}`;
