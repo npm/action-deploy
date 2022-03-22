@@ -47,7 +47,8 @@ export async function postSlackNotification (
   slackChannel: string,
   environment: string,
   status: DeploymentStatus,
-  context: Context): Promise<void> {
+  context: Context,
+  deploymentConfidenceUrl: string): Promise<void> {
   if (slackToken === '' || slackChannel === '') {
     return
   }
@@ -56,7 +57,6 @@ export async function postSlackNotification (
   try {
     const statusIcon = status === 'success' ? '✅' : '❌'
     const afterSha = sha.slice(0, 7)
-    const dataDogDeploymentConfidenceDashboard = environment === 'production' ? 'https://app.datadoghq.com/dashboard/vbe-7ch-b6q/npm-inc-registry' : 'https://app.datadoghq.com/dashboard/v49-ema-xip/npm-inc-registry-staging'
     const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`
     const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`
     const commitUrl = `${repoUrl}/commit/${sha}`
@@ -70,8 +70,13 @@ export async function postSlackNotification (
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
+    let text
     const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`
-    const text = status === 'success' ? `${baseText}\n\n- :toolbox: Check out our <${dataDogDeploymentConfidenceDashboard}|**deployment confidence dashboard**> so you are the first to know if anything is broken.` : baseText
+    if (deploymentConfidenceUrl !== '' && status === 'success') {
+      text = `${baseText}\n\n- :toolbox: Check out our <${deploymentConfidenceUrl}|**deployment confidence dashboard**> so you are the first to know if anything is broken.`
+    } else {
+      text = baseText
+    }
 
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {

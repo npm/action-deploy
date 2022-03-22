@@ -38,6 +38,9 @@ inputs:
   slack_channel:
     required: false
     description: name of channel to post deployment completion messages
+  deployment_confidence_url:
+    required: false
+    description: link for the deployment confidence dashboard
 runs:
   using: 'node12'
   main: 'dist/main/index.js'

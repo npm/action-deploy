@@ -13742,7 +13742,7 @@ function getEnvironment(ref) {
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, environment, status, context) {
+function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
@@ -13752,7 +13752,6 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
         try {
             const statusIcon = status === 'success' ? '✅' : '❌';
             const afterSha = sha.slice(0, 7);
-            const dataDogDeploymentConfidenceDashboard = environment === 'production' ? 'https://app.datadoghq.com/dashboard/vbe-7ch-b6q/npm-inc-registry' : 'https://app.datadoghq.com/dashboard/v49-ema-xip/npm-inc-registry-staging';
             const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
             const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
             const commitUrl = `${repoUrl}/commit/${sha}`;
@@ -13765,8 +13764,14 @@ function postSlackNotification(slackToken, slackChannel, environment, status, co
                 commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
             }
             // message formatting reference - https://api.slack.com/reference/surfaces/formatting
+            let text;
             const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`;
-            const text = status === 'success' ? `${baseText}\n\n- :toolbox: Check out our <${dataDogDeploymentConfidenceDashboard}|**deployment confidence dashboard**> so you are the first to know if anything is broken.` : baseText;
+            if (deploymentConfidenceUrl !== '' && status === 'success') {
+                text = `${baseText}\n\n- :toolbox: Check out our <${deploymentConfidenceUrl}|**deployment confidence dashboard**> so you are the first to know if anything is broken.`;
+            }
+            else {
+                text = baseText;
+            }
             const slackClient = new web_api_1.WebClient(slackToken);
             const slackParams = {
                 channel: slackChannel,
@@ -14080,7 +14085,7 @@ const github = __importStar(__webpack_require__(469));
 const complete_1 = __webpack_require__(74);
 const utils_1 = __webpack_require__(611);
 function post() {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
         let token;
         let type;
@@ -14089,6 +14094,7 @@ function post() {
         let environment;
         let slackToken;
         let slackChannel;
+        let deploymentConfidenceUrl;
         const { actor, ref, repo, sha } = github.context;
         console.log('### post.context ###');
         console.log(`actor: ${actor}`);
@@ -14110,6 +14116,8 @@ function post() {
             console.log(`slack_token: ${slackToken === '' ? 'none' : 'passed'}`);
             slackChannel = (_d = utils_1.getInput('slack_channel')) !== null && _d !== void 0 ? _d : '';
             console.log(`slack_channel: ${slackChannel}`);
+            deploymentConfidenceUrl = (_e = utils_1.getInput('deployment_confidence_url')) !== null && _e !== void 0 ? _e : '';
+            console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`);
         }
         catch (error) {
             core.error(error);
@@ -14130,7 +14138,7 @@ function post() {
                     return;
                 }
                 // Post Slack notification
-                yield utils_1.postSlackNotification(slackToken, slackChannel, environment, status, github.context);
+                yield utils_1.postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl);
                 try {
                     yield complete_1.complete(client, Number(deploymentId), status);
                 }
