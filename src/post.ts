@@ -11,6 +11,7 @@ export async function post (): Promise<void> {
   let environment: string
   let slackToken: string
   let slackChannel: string
+  let deploymentConfidenceUrl: string
 
   const { actor, ref, repo, sha } = github.context
 
@@ -40,6 +41,9 @@ export async function post (): Promise<void> {
 
     slackChannel = getInput('slack_channel') ?? ''
     console.log(`slack_channel: ${slackChannel}`)
+
+    deploymentConfidenceUrl = getInput('deployment_confidence_url') ?? ''
+    console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`)
   } catch (error) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
@@ -62,7 +66,7 @@ export async function post (): Promise<void> {
       }
 
       // Post Slack notification
-      await postSlackNotification(slackToken, slackChannel, environment, status, github.context)
+      await postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl)
 
       try {
         await complete(client, Number(deploymentId), status)

@@ -47,7 +47,8 @@ export async function postSlackNotification (
   slackChannel: string,
   environment: string,
   status: DeploymentStatus,
-  context: Context): Promise<void> {
+  context: Context,
+  deploymentConfidenceUrl: string): Promise<void> {
   if (slackToken === '' || slackChannel === '') {
     return
   }
@@ -69,7 +70,14 @@ export async function postSlackNotification (
     }
 
     // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-    const text = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}`
+    let text
+    const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`
+    if (deploymentConfidenceUrl !== '' && status === 'success') {
+      text = `${baseText}\n\n- :toolbox: Check out our <${deploymentConfidenceUrl}|**deployment confidence dashboard**> so you are the first to know if anything is broken.`
+    } else {
+      text = baseText
+    }
+
     const slackClient = new WebClient(slackToken)
     const slackParams: ChatPostMessageArguments = {
       channel: slackChannel,
