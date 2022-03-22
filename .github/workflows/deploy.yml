@@ -9,6 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    
+    - name: Set staging variables
+      run: |
+        echo "DEPLOYMENT_CONFIDENCE_URL=${{ secrets.DATADOG_STAGING_DEPLOYMENT_DASHBOARD_URL }}" >> $GITHUB_ENV
+      if: github.ref == 'refs/heads/deploy-staging'
+
+    - name: Set production variables
+      run: |
+        echo "DEPLOYMENT_CONFIDENCE_URL=${{ secrets.DATADOG_PRODUCTION_DEPLOYMENT_DASHBOARD_URL }}" >> $GITHUB_ENV
+      if: github.ref == 'refs/heads/deploy-production'
 
     - name: create a deployment
       uses: npm/action-deploy@v2.1.1
@@ -18,6 +28,7 @@ jobs:
         token: ${{github.token}}
         logs: https://github.com/npm/action-deploy/actions?query=workflow%3Adeploy
         environment_url: https://npmjs.com
+        deployment_confidence_url: ${{env.DEPLOYMENT_CONFIDENCE_URL}}
         job_status: ${{job.status}}
         slack_token: ${{secrets.NPM_ROBOT_SLACK_TOKEN}}
         slack_channel: npm-test-notifications
