@@ -73,7 +73,7 @@ export async function postSlackNotification (
     let text
     const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`
     if (deploymentConfidenceUrl !== '' && status === 'success') {
-      text = `${baseText}\n\n- :toolbox: Check out our <${deploymentConfidenceUrl}|**deployment confidence dashboard**> so you are the first to know if anything is broken.`
+      text = `${baseText}\n\n:toolbox: Check out our <${deploymentConfidenceUrl}|deployment confidence dashboard> so you are the first to know if anything is broken.`
     } else {
       text = baseText
     }
