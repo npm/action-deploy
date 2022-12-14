@@ -65,15 +65,19 @@ export async function run (): Promise<void> {
   switch (type) {
     case 'create':
       try {
-        deploymentId = await create(
-          client,
-          logsUrl,
-          description,
-          status,
-          environment,
-          environmentUrl,
-          mainBranch
-        )
+        // If a deployment was already created on a previous job,
+        // don't create one again.
+        if (deploymentId === '0') {
+          deploymentId = await create(
+            client,
+            logsUrl,
+            description,
+            status,
+            environment,
+            environmentUrl,
+            mainBranch
+          )
+        }
         console.log(`saveState::${DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`)
         core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
         core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
