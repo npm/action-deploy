@@ -1,10 +1,10 @@
-import { context, GitHub } from '@actions/github'
+import { context, getOctokit } from '@actions/github'
 
 export async function deleteAll (
-  client: GitHub,
+  client: ReturnType<typeof getOctokit>,
   environment: string
 ): Promise<void> {
-  const deployments = await client.repos.listDeployments({
+  const deployments = await client.rest.repos.listDeployments({
     ...context.repo,
     environment
   })
@@ -13,7 +13,7 @@ export async function deleteAll (
     // invalidate deployment first
     // since we can't delete active deployment
     console.log(`invalidate deployment: ${deployment.id}`)
-    await client.repos.createDeploymentStatus({
+    await client.rest.repos.createDeploymentStatus({
       ...context.repo,
       deployment_id: deployment.id,
       state: 'failure'

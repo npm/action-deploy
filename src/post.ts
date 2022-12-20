@@ -45,14 +45,17 @@ export async function post (): Promise<void> {
     deploymentConfidenceUrl = getInput('deployment_confidence_url') ?? ''
     console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`)
   } catch (error) {
-    core.error(error)
+    if (error instanceof Error || typeof error === 'string') {
+      core.error(error)
+    }
+
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
   }
   console.log('\n')
   console.log('### post ###')
 
-  const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] })
+  const client = github.getOctokit(token, { previews: ['ant-man', 'flash'] })
   const status: DeploymentStatus = jobStatus === 'success' ? 'success' : 'failure'
   console.log(`status: ${status}`)
 
@@ -71,11 +74,15 @@ export async function post (): Promise<void> {
       try {
         await complete(client, Number(deploymentId), status)
       } catch (error) {
-        if (error.name === 'HttpError' && error.status === 404) {
+        if (error instanceof Error && error.name === 'HttpError' && (error as { status?: unknown }).status === 404) {
           console.log('Couldn\'t complete a deployment: not found')
           return
         }
-        core.error(error)
+
+        if (error instanceof Error || typeof error === 'string') {
+          core.error(error)
+        }
+
         core.setFailed(`Complete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }

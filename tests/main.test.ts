@@ -44,11 +44,11 @@ describe('create', () => {
 
     const postDeployment = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments')
-      .reply(200, postDeploymentReply)
+      .reply(201, postDeploymentReply)
 
     const postStatus = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments/42/statuses')
-      .reply(200, postStatusReply)
+      .reply(201, postStatusReply)
 
     // act
     await main.run()
@@ -89,7 +89,7 @@ describe('create', () => {
       await main.run()
       expect('this should not be reached').toEqual('')
     } catch (error) {
-      expect(error.message).toEqual("{\"resource\":\"DeploymentStatus\",\"code\":\"custom\",\"field\":\"environment_url\",\"message\":\"environment_url must use http(s) scheme\"}")
+      expect(error.message).toEqual("environment_url must use http(s) scheme")
     }
 
     // assert
@@ -137,7 +137,7 @@ describe('complete', () => {
 
     const postDeploymentStatus = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments/42/statuses')
-      .reply(200, postStatusReply)
+      .reply(201, postStatusReply)
 
       const slack = nock('https://slack.com')
           .post('/api/chat.postMessage', body => body.text.includes('<@fake-actor>'))
@@ -186,7 +186,7 @@ describe('delete-all', () => {
 
     const postStatus = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments/42/statuses')
-      .reply(200, postStatusReply)
+      .reply(201, postStatusReply)
 
     const deleteDeployment = nock('https://api.github.com')
       .delete('/repos/owner/repo/deployments/42')
@@ -232,7 +232,7 @@ describe('delete', () => {
     // arrange
     const postStatus = nock('https://api.github.com')
       .post('/repos/owner/repo/deployments/42/statuses')
-      .reply(200, { deployment_url: 'https://api.github.com/repos/owner/repo/deployments/42' })
+      .reply(201, { deployment_url: 'https://api.github.com/repos/owner/repo/deployments/42' })
 
     const deleteDeployment = nock('https://api.github.com')
       .delete('/repos/owner/repo/deployments/42')

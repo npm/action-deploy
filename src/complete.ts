@@ -1,12 +1,12 @@
-import { context, GitHub } from '@actions/github'
+import { context, getOctokit } from '@actions/github'
 import { DeploymentStatus } from './utils'
 
 export async function complete (
-  client: GitHub,
+  client: ReturnType<typeof getOctokit>,
   deploymentId: number,
   status: DeploymentStatus
 ): Promise<void> {
-  const statuses = await client.repos.listDeploymentStatuses({
+  const statuses = await client.rest.repos.listDeploymentStatuses({
     ...context.repo,
     deployment_id: deploymentId
   })
@@ -20,7 +20,7 @@ export async function complete (
     )}`
   )
 
-  const statusResult = await client.repos.createDeploymentStatus({
+  const statusResult = await client.rest.repos.createDeploymentStatus({
     ...context.repo,
     deployment_id: deploymentId,
     state: status,

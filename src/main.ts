@@ -52,13 +52,16 @@ export async function run (): Promise<void> {
     deploymentId = getInput(DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0'
     console.log(`deploymentId: ${deploymentId}`)
   } catch (error) {
-    core.error(error)
+    if (error instanceof Error || typeof error === 'string') {
+      core.error(error)
+    }
+
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
   }
   console.log('\n')
 
-  const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] })
+  const client = github.getOctokit(token, { previews: ['ant-man', 'flash'] })
 
   console.log('### run ###')
 
@@ -78,7 +81,10 @@ export async function run (): Promise<void> {
         core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
         core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
       } catch (error) {
-        core.error(error)
+        if (error instanceof Error || typeof error === 'string') {
+          core.error(error)
+        }
+
         core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
@@ -90,7 +96,10 @@ export async function run (): Promise<void> {
           Number(deploymentId)
         )
       } catch (error) {
-        core.error(error)
+        if (error instanceof Error || typeof error === 'string') {
+          core.error(error)
+        }
+
         core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
@@ -102,7 +111,10 @@ export async function run (): Promise<void> {
           environment
         )
       } catch (error) {
-        core.error(error)
+        if (error instanceof Error || typeof error === 'string') {
+          core.error(error)
+        }
+
         core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
