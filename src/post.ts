@@ -43,6 +43,8 @@ export async function post (): Promise<void> {
     slackChannel = getInput('slack_channel') ?? ''
     console.log(`slack_channel: ${slackChannel}`)
 
+    // We want to mutate the Deployment by default, unless the deployment
+    // was already mutated by another action and we just want to notify
     mutateDeployment = getInput('mutate_deployment') !== 'false'
     console.log(`mutate_deployment: ${mutateDeployment.toString()}`)
 
