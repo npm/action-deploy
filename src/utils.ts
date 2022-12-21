@@ -48,11 +48,12 @@ export async function postSlackNotification (
   environment: string,
   status: DeploymentStatus,
   context: Context,
-  deploymentConfidenceUrl: string): Promise<void> {
+  deploymentConfidenceUrl: string,
+  sha: string): Promise<void> {
   if (slackToken === '' || slackChannel === '') {
     return
   }
-  const { actor, repo, sha, payload } = context
+  const { actor, repo, payload } = context
 
   try {
     const statusIcon = status === 'success' ? '✅' : '❌'
