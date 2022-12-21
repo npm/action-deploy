@@ -13,6 +13,7 @@ export async function post (): Promise<void> {
   let slackChannel: string
   let deploymentConfidenceUrl: string
   let mutateDeployment: boolean
+  let currentSha: string
 
   const { actor, ref, repo, sha } = github.context
 
@@ -48,6 +49,9 @@ export async function post (): Promise<void> {
     mutateDeployment = getInput('mutate_deployment') !== 'false'
     console.log(`mutate_deployment: ${mutateDeployment.toString()}`)
 
+    currentSha = getInput('current_sha') ?? sha
+    console.log(`current_sha: ${currentSha}`)
+
     deploymentConfidenceUrl = getInput('deployment_confidence_url') ?? ''
     console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`)
   } catch (error) {
@@ -72,7 +76,7 @@ export async function post (): Promise<void> {
       }
 
       // Post Slack notification
-      await postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl)
+      await postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl, currentSha)
 
       try {
         // If the deployment was managed by another workflow we don't want to mutate it here
