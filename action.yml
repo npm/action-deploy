@@ -41,6 +41,9 @@ inputs:
   deployment_confidence_url:
     required: false
     description: link for the deployment confidence dashboard
+  mutate_deployment:
+    required: false
+    description: Whether the deployment status needs to be mutated by this action
 runs:
   using: 'node12'
   main: 'dist/main/index.js'
