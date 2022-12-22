@@ -13742,13 +13742,13 @@ function getEnvironment(ref) {
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl) {
+function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
             return;
         }
-        const { actor, repo, sha, payload } = context;
+        const { actor, repo, payload } = context;
         try {
             const statusIcon = status === 'success' ? '✅' : '❌';
             const afterSha = sha.slice(0, 7);
@@ -14085,7 +14085,7 @@ const github = __importStar(__webpack_require__(469));
 const complete_1 = __webpack_require__(74);
 const utils_1 = __webpack_require__(611);
 function post() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function* () {
         let token;
         let type;
@@ -14096,6 +14096,7 @@ function post() {
         let slackChannel;
         let deploymentConfidenceUrl;
         let mutateDeployment;
+        let currentSha;
         const { actor, ref, repo, sha } = github.context;
         console.log('### post.context ###');
         console.log(`actor: ${actor}`);
@@ -14121,7 +14122,9 @@ function post() {
             // was already mutated by another action and we just want to notify
             mutateDeployment = utils_1.getInput('mutate_deployment') !== 'false';
             console.log(`mutate_deployment: ${mutateDeployment.toString()}`);
-            deploymentConfidenceUrl = (_e = utils_1.getInput('deployment_confidence_url')) !== null && _e !== void 0 ? _e : '';
+            currentSha = (_e = utils_1.getInput('current_sha')) !== null && _e !== void 0 ? _e : sha;
+            console.log(`current_sha: ${currentSha}`);
+            deploymentConfidenceUrl = (_f = utils_1.getInput('deployment_confidence_url')) !== null && _f !== void 0 ? _f : '';
             console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`);
         }
         catch (error) {
@@ -14143,7 +14146,7 @@ function post() {
                     return;
                 }
                 // Post Slack notification
-                yield utils_1.postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl);
+                yield utils_1.postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl, currentSha);
                 try {
                     // If the deployment was managed by another workflow we don't want to mutate it here
                     if (mutateDeployment)
