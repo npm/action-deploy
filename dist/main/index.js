@@ -13877,13 +13877,13 @@ function getEnvironment(ref) {
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl) {
+function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (slackToken === '' || slackChannel === '') {
             return;
         }
-        const { actor, repo, sha, payload } = context;
+        const { actor, repo, payload } = context;
         try {
             const statusIcon = status === 'success' ? '✅' : '❌';
             const afterSha = sha.slice(0, 7);
