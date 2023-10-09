@@ -1,115 +1,99 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { create } from './create'
-
-import { deleteAll } from './delete-all'
-import { deleteDeployment } from './delete'
-import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment } from './utils'
+import { complete } from './complete'
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment, postSlackNotification } from './utils'
 
 export async function run (): Promise<void> {
   let token: string
   let type: ActionType
-  let logsUrl: string
-  let description: string
-  let status: DeploymentStatus
-  let environment: string
-  let environmentUrl: string
   let deploymentId: string
-  let mainBranch: string
+  let jobStatus: string
+  let environment: string
+  let slackToken: string
+  let slackChannel: string
+  let deploymentConfidenceUrl: string
+  let mutateDeployment: boolean
+  let currentSha: string
 
-  const { actor, ref } = github.context
+  const { actor, ref, repo, sha } = github.context
 
-  console.log('### main.context ###')
+  console.log('### post.context ###')
   console.log(`actor: ${actor}`)
   console.log(`ref: ${ref}`)
+  console.log(`owner: ${repo.owner}`)
+  console.log(`repo: ${repo.repo}`)
+  console.log(`compare: ${github.context.payload.compare as string}`)
+  console.log(`new_sha: ${sha}`)
   console.log('\n')
 
   try {
-    console.log('### main.inputs ###')
+    console.log('### post.inputs ###')
     token = getInput('token', { required: true }) ?? ''
 
     type = getInput('type', { required: true }) as ActionType
     console.log(`type: ${type}`)
 
-    logsUrl = getInput('logs') ?? ''
-    console.log(`logs: ${logsUrl}`)
-
-    description = getInput('description') ?? `deployed by ${actor}`
-    console.log(`description: ${description}`)
-
-    status = (getInput('status') ?? 'in_progress') as DeploymentStatus
-    console.log(`status: ${status}`)
+    jobStatus = getInput('job_status') ?? 'success'
+    console.log(`job_status: ${jobStatus}`)
 
     environment = getEnvironment(ref)
 
-    environmentUrl = getInput('environment_url') ?? ''
-    console.log(`environmentUrl: ${environmentUrl}`)
+    slackToken = getInput('slack_token') ?? ''
+    console.log(`slack_token: ${slackToken === '' ? 'none' : 'passed'}`)
 
-    mainBranch = getInput('main_branch') ?? 'master'
-    console.log(`main branch: ${mainBranch}`)
+    slackChannel = getInput('slack_channel') ?? ''
+    console.log(`slack_channel: ${slackChannel}`)
 
-    const shouldRequireDeploymentId = type === 'delete'
-    deploymentId = getInput(DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0'
-    console.log(`deploymentId: ${deploymentId}`)
+    // We want to mutate the Deployment by default, unless the deployment
+    // was already mutated by another action and we just want to notify
+    mutateDeployment = getInput('mutate_deployment') !== 'false'
+    console.log(`mutate_deployment: ${mutateDeployment.toString()}`)
+
+    currentSha = getInput('current_sha') ?? sha
+    console.log(`current_sha: ${currentSha}`)
+
+    deploymentConfidenceUrl = getInput('deployment_confidence_url') ?? ''
+    console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`)
   } catch (error) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
   }
   console.log('\n')
+  console.log('### post ###')
 
   const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] })
-
-  console.log('### run ###')
+  const status: DeploymentStatus = jobStatus === 'success' ? 'success' : 'failure'
+  console.log(`status: ${status}`)
 
   switch (type) {
     case 'create':
+      deploymentId = core.getState(DEPLOYMENT_ID_STATE_NAME)
+      console.log(`deploymentId: ${deploymentId}`)
+      if (deploymentId === undefined || deploymentId === '') {
+        console.log('No deploymentId provided, skip status update')
+        return
+      }
+
+      // Post Slack notification
+      await postSlackNotification(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl, currentSha)
+
       try {
-        // If a deployment was already created on a previous job,
-        // don't create one again.
-        if (deploymentId === '0') {
-          deploymentId = await create(
-            client,
-            logsUrl,
-            description,
-            status,
-            environment,
-            environmentUrl,
-            mainBranch
-          )
+        // If the deployment was managed by another workflow we don't want to mutate it here
+        if (mutateDeployment) await complete(client, Number(deploymentId), status)
+      } catch (error) {
+        if (error.name === 'HttpError' && error.status === 404) {
+          console.log('Couldn\'t complete a deployment: not found')
+          return
         }
-        console.log(`saveState::${DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`)
-        core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
-        core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
-      } catch (error) {
         core.error(error)
-        core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
+        core.setFailed(`Complete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
+
       break
-    case 'delete':
-      try {
-        await deleteDeployment(
-          client,
-          Number(deploymentId)
-        )
-      } catch (error) {
-        core.error(error)
-        core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`)
-        throw error
-      }
-      break
-    case 'delete-all':
-      try {
-        await deleteAll(
-          client,
-          environment
-        )
-      } catch (error) {
-        core.error(error)
-        core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`)
-        throw error
-      }
+    default:
+      console.log(`No post script for type: ${type}`)
       break
   }
 }
