@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "ts-standard src/**/*.ts",
-    "pack": "ncc build lib/main.js -o dist/main && ncc build lib/post.js -o dist/post",
+    "pack": "ncc build lib/main.js -o dist/main",
     "test": "NODE_ENV=test jest",
     "all": "npm run build && npm run lint && npm test && npm run pack"
   },
