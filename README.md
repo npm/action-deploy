@@ -1,13 +1,6 @@
-# Action to manage GitHub deployments
-
-Features:
-- create a deployment (and invalidate all previous deployments)
-- delete all deployments in specific environment
-- delete a deployment by id
+# Action to send npm service deployment notifications to Slack
 
 ## Usage
-
-### create
 
 Inputs:
 
@@ -23,89 +16,15 @@ Inputs:
 `slack_token`|optional token of slack integration to post messages with deployment results
 `slack_channel`|optional slack channel name (both `slack_token` and `slack_channel` are required to post a message)
 
-Outputs:
-
-|output | description
-|- | -
-`deployment_id` | The `id` of the created deployment
-
 #### Example usage
 
 ```yaml
-- name: create a deployment
-  uses: npm/action-deploy@v2
+- name: send deployment complete message to Slack
+  uses: npm/action-deployment-notifications@v1
   with:
-    type: create
-    token: ${{github.token}}
-    logs: https://your-app.com/deployment_logs
     environment: staging
     environment_url: https://staging.your-app.com
     job_status: ${{job.status}} # use this to track success of the deployment in post script
-```
-
-### delete-all
-
-Allows deleting all deployments for a specific environment
-
-Inputs:
-
-|parameter | description
-|- | -
-`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
-`type` | **Required** type of an action. Should be `delete-all`
-`environment` | environment to delete all deployments in
-
-Outputs: none
-
-#### Example usage
-
-```yaml
-- name: delete all deployments in staging
-  uses: npm/action-deploy@v2
-  with:
-    type: delete-all
-    token: ${{github.token}}
-    environment: staging
-```
-
-### delete
-
-Given in one of the previous steps you created a deployment, with `delete` you can delete it by id
-
-Inputs:
-
-|parameter | description
-|- | -
-`token` | **Required** token to authorize calls to GitHub API, can be ${{github.token}} to create a deployment for the same repo
-`type` | **Required** type of an action. Should be `delete`
-`deployment_id` | **Required** the `id` of the a deployment to delete
-
-Outputs: none
-
-#### Example usage
-
-```yaml
-- name: create a deployment
-  uses: npm/action-deploy@v2
-  id: create-deployment
-  with:
-    type: create
-    token: ${{github.token}}
-    logs: https://your-app.com/deployment_logs
-    environment: staging
-    environment_url: https://staging.your-app.com
-    job_status: ${{job.status}}
-
-# add your deployment steps here
-- name: placeholder for actual deployment
-  run: sleep 10s
-
-- name: delete deployment
-  uses: npm/action-deploy@v2
-  with:
-    type: delete
-    token: ${{github.token}}
-    deployment_id: ${{steps.create-deployment.outputs.deployment_id}}
 ```
 
 ## Development
@@ -163,6 +82,7 @@ Actions are run from GitHub repos so we will checkin the packed dist folder.
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
 ```bash
+$ nvm install
 $ npm run pack
 $ git add dist
 $ git commit -a -m "prod dependencies"
