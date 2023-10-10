@@ -1,34 +1,10 @@
-name: action-deploy
-description: Action to manage GitHub deployments
-author: radiantspace
+name: action-deployment-notifications
+description: Action to send npm service deployment notifications to Slack
+author: radiantspace, hashtagchris
 inputs:
-  token:
-    required: true
-    description: GitHub token
-  type:
-    required: true
-    description: a type of deployment action to perform, can be 'create', 'delete' and 'delete-all'
-  logs:
-    required: false
-    description: url to deployment logs
-  description:
-    required: false
-    description: description of a deployment
-  deployment_id:
-    required: false
-    description: an id for deployment if 'delete' type is used
-  status:
-    required: false
-    description: status for created deployment
   environment:
     required: false
     description: environment to create or delete all deployments in, default to context.ref without prefixes ('refs/heads/', 'deploy-'), i.e. branch name
-  environment_url:
-    required: false
-    description: link for the deployment (e.g. http://staging.your.app/status)
-  main_branch:
-    required: false
-    description: name of main branch of the repo, to get and store sha of the head commit and track diff being deployed
   job_status:
     required: false
     description: pass `{{job.status}}` to set the deployment completion status post script accordingly
@@ -41,12 +17,9 @@ inputs:
   deployment_confidence_url:
     required: false
     description: link for the deployment confidence dashboard
-  mutate_deployment:
-    required: false
-    description: Whether the deployment status needs to be mutated by this action
   current_sha:
     required: false
     description: Sha of the deployment
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/main/index.js'
