@@ -42,7 +42,7 @@
     "sinon": "^9.0.2",
     "ts-jest": "^26.3.0",
     "ts-standard": "^8.0.1",
-    "typescript": "^3.6.4"
+    "typescript": "^3.9.7"
   },
   "pre-commit": [
     "all"
