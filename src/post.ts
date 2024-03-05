@@ -54,7 +54,7 @@ export async function post (): Promise<void> {
 
     deploymentConfidenceUrl = getInput('deployment_confidence_url') ?? ''
     console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`)
-  } catch (error) {
+  } catch (error: any) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
@@ -81,7 +81,7 @@ export async function post (): Promise<void> {
       try {
         // If the deployment was managed by another workflow we don't want to mutate it here
         if (mutateDeployment) await complete(client, Number(deploymentId), status)
-      } catch (error) {
+      } catch (error: any) {
         if (error.name === 'HttpError' && error.status === 404) {
           console.log('Couldn\'t complete a deployment: not found')
           return

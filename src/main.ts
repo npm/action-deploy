@@ -51,7 +51,7 @@ export async function run (): Promise<void> {
     const shouldRequireDeploymentId = type === 'delete'
     deploymentId = getInput(DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0'
     console.log(`deploymentId: ${deploymentId}`)
-  } catch (error) {
+  } catch (error: any) {
     core.error(error)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
@@ -81,7 +81,7 @@ export async function run (): Promise<void> {
         console.log(`saveState::${DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`)
         core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
         core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
-      } catch (error) {
+      } catch (error: any) {
         core.error(error)
         core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
@@ -93,7 +93,7 @@ export async function run (): Promise<void> {
           client,
           Number(deploymentId)
         )
-      } catch (error) {
+      } catch (error: any) {
         core.error(error)
         core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
@@ -105,7 +105,7 @@ export async function run (): Promise<void> {
           client,
           environment
         )
-      } catch (error) {
+      } catch (error: any) {
         core.error(error)
         core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`)
         throw error
