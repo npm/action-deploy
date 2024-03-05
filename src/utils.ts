@@ -90,8 +90,8 @@ export async function postSlackNotification (
     // API description - https://api.slack.com/methods/chat.postMessage
     await slackClient.chat.postMessage(slackParams)
     console.log(`Slack message posted to channel: ${slackChannel}`)
-  } catch (error) {
-    core.error(`${error instanceof Error ? error.message : String(error)}`)
+  } catch (error: any) {
+    core.error(error)
   }
 }
 
