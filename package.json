@@ -24,7 +24,7 @@
   "author": "radiantspace",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "1.2.6",
+    "@actions/core": "1.6.0",
     "@actions/github": "2.2.0",
     "@slack/web-api": "^7.0.2"
   },
