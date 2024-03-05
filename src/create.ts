@@ -49,7 +49,6 @@ async function getMainSha (client: GitHub, branch: string): Promise<string> {
     console.log(`${branch} branch sha: ${sha}`)
     return sha
   } catch (error) {
-    console.error(error.message)
     return `no_${branch}`
   }
 }

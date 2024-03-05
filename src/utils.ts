@@ -91,7 +91,7 @@ export async function postSlackNotification (
     await slackClient.chat.postMessage(slackParams)
     console.log(`Slack message posted to channel: ${slackChannel}`)
   } catch (error) {
-    core.error(error)
+    core.error(`${error instanceof Error ? error.message : String(error)}`)
   }
 }
 

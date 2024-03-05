@@ -52,7 +52,7 @@ export async function run (): Promise<void> {
     deploymentId = getInput(DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0'
     console.log(`deploymentId: ${deploymentId}`)
   } catch (error) {
-    core.error(error)
+    core.error(`${error instanceof Error ? error.message : String(error)}`)
     core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`)
     throw error
   }
@@ -82,7 +82,7 @@ export async function run (): Promise<void> {
         core.saveState(DEPLOYMENT_ID_STATE_NAME, deploymentId) // for internal use
         core.setOutput(DEPLOYMENT_ID_STATE_NAME, deploymentId) // keep that output for external dependencies
       } catch (error) {
-        core.error(error)
+        core.error(`${error instanceof Error ? error.message : String(error)}`)
         core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
@@ -94,7 +94,7 @@ export async function run (): Promise<void> {
           Number(deploymentId)
         )
       } catch (error) {
-        core.error(error)
+        core.error(`${error instanceof Error ? error.message : String(error)}`)
         core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
@@ -106,7 +106,7 @@ export async function run (): Promise<void> {
           environment
         )
       } catch (error) {
-        core.error(error)
+        core.error(`${error instanceof Error ? error.message : String(error)}`)
         core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`)
         throw error
       }
