@@ -89,7 +89,7 @@ describe('create', () => {
       await main.run()
       expect('this should not be reached').toEqual('')
     } catch (error: any) {
-      expect(error.message).toEqual("{\"resource\":\"DeploymentStatus\",\"code\":\"custom\",\"field\":\"environment_url\",\"message\":\"environment_url must use http(s) scheme\"}")
+      expect(error.message).toEqual("environment_url must use http(s) scheme")
     }
 
     // assert
