@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "ts-standard src/**/*.ts",
+    "lint:fix": "ts-standard src/**/*.ts --fix",
     "pack": "ncc build lib/main.js -o dist/main && ncc build lib/post.js -o dist/post",
     "test": "NODE_ENV=test jest",
     "all": "npm run build && npm run lint && npm test && npm run pack"
@@ -25,15 +26,19 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "1.6.0",
-    "@actions/github": "2.2.0",
+    "@actions/github": "^6.0.0",
     "@slack/web-api": "^7.0.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/parser": "^7.1.1",
     "@vercel/ncc": "^0.38.1",
+    "babel-jest": "^29.7.0",
+    "fetch-mock": "^10.0.7",
     "git-validate": "^2.2.4",
     "jest": "^29.7.0",
     "jest-circus": "^29.7.0",

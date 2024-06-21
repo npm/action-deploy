@@ -1,24 +1,24 @@
-import { context, GitHub } from '@actions/github'
+import { context } from '@actions/github'
 import { DeploymentStatus } from './utils'
 
 async function invalidatePreviousDeployments (
-  client: GitHub,
+  octokitClient: any,
   environment: string
 ): Promise<void> {
-  const deployments = await client.repos.listDeployments({
+  const deployments = await octokitClient.rest.repos.listDeployments({
     ...context.repo,
     ref: context.ref,
     environment
   })
 
   await Promise.all(
-    deployments.data.map(async deployment => {
-      const statuses = await client.repos.listDeploymentStatuses({
+    deployments.data.map(async (deployment: { id: number }) => {
+      const statuses = await octokitClient.rest.repos.listDeploymentStatuses({
         ...context.repo,
         deployment_id: deployment.id
       })
 
-      const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0]
+      const lastStatus = statuses.data.sort((a: { id: number }, b: { id: number }) => a.id - b.id).slice(-1)[0]
       console.log(
         `last status for deployment_id '${deployment.id}': ${JSON.stringify(
           lastStatus,
@@ -30,7 +30,7 @@ async function invalidatePreviousDeployments (
       // invalidate the deployment
       if (lastStatus?.state === 'success') {
         console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`)
-        await client.repos.createDeploymentStatus({
+        await octokitClient.rest.repos.createDeploymentStatus({
           ...context.repo,
           deployment_id: deployment.id,
           state: 'inactive',
@@ -42,10 +42,10 @@ async function invalidatePreviousDeployments (
   )
 }
 
-async function getMainSha (client: GitHub, branch: string): Promise<string> {
+async function getMainSha (octokitClient: any, branch: string): Promise<string> {
   try {
-    const response = await client.repos.getBranch({ ...context.repo, branch })
-    const sha = response.data.commit.sha
+    const response = await octokitClient.rest.repos.getBranch({ ...context.repo, branch })
+    const sha = String(response.data.commit.sha)
     console.log(`${branch} branch sha: ${sha}`)
     return sha
   } catch (error: any) {
@@ -55,7 +55,7 @@ async function getMainSha (client: GitHub, branch: string): Promise<string> {
 }
 
 export async function create (
-  client: GitHub,
+  octokitClient: any,
   logUrl: string,
   description: string,
   initialStatus: DeploymentStatus,
@@ -63,14 +63,14 @@ export async function create (
   environmentUrl: string,
   mainBranch: string
 ): Promise<string> {
-  await invalidatePreviousDeployments(client, environment)
+  await invalidatePreviousDeployments(octokitClient, environment)
 
   // get main branch sha to store in payload
-  const mainBranchSha = await getMainSha(client, mainBranch)
+  const mainBranchSha = await getMainSha(octokitClient, mainBranch)
 
   const payload = JSON.stringify({ actor: context.actor, main_sha: mainBranchSha })
 
-  const deployment = await client.repos.createDeployment({
+  const deployment = await octokitClient.rest.repos.createDeployment({
     ...context.repo,
     ref: context.ref,
     required_contexts: [],
@@ -81,15 +81,17 @@ export async function create (
     payload
   })
 
+  const deploymentId = deployment.data.id
+
   console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`)
 
-  const status = await client.repos.createDeploymentStatus({
+  const status = await octokitClient.rest.repos.createDeploymentStatus({
     ...context.repo,
-    deployment_id: deployment.data.id,
+    deployment_id: deploymentId,
     state: initialStatus,
     log_url: logUrl,
     environment_url: environmentUrl
   })
   console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`)
-  return deployment.data.id.toString()
+  return deploymentId.toString()
 }
