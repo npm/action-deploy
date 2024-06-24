@@ -2,65 +2,77 @@
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 9018:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.create = void 0;
 const github_1 = __nccwpck_require__(5438);
-function invalidatePreviousDeployments(octokitClient, environment) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const deployments = yield octokitClient.rest.repos.listDeployments(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, environment }));
-        yield Promise.all(deployments.data.map((deployment) => __awaiter(this, void 0, void 0, function* () {
-            const statuses = yield octokitClient.rest.repos.listDeploymentStatuses(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id }));
-            const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
-            console.log(`last status for deployment_id '${deployment.id}': ${JSON.stringify(lastStatus, null, 2)}`);
-            // invalidate the deployment
-            if ((lastStatus === null || lastStatus === void 0 ? void 0 : lastStatus.state) === 'success') {
-                console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`);
-                yield octokitClient.rest.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id, state: 'inactive', environment_url: lastStatus.environment_url, log_url: lastStatus.log_url }));
-            }
-        })));
+async function invalidatePreviousDeployments(octokitClient, environment) {
+    const deployments = await octokitClient.rest.repos.listDeployments({
+        ...github_1.context.repo,
+        ref: github_1.context.ref,
+        environment
     });
-}
-function getMainSha(octokitClient, branch) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const response = yield octokitClient.rest.repos.getBranch(Object.assign(Object.assign({}, github_1.context.repo), { branch }));
-            const sha = String(response.data.commit.sha);
-            console.log(`${branch} branch sha: ${sha}`);
-            return sha;
+    await Promise.all(deployments.data.map(async (deployment) => {
+        const statuses = await octokitClient.rest.repos.listDeploymentStatuses({
+            ...github_1.context.repo,
+            deployment_id: deployment.id
+        });
+        const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
+        console.log(`last status for deployment_id '${deployment.id}': ${JSON.stringify(lastStatus, null, 2)}`);
+        // invalidate the deployment
+        if (lastStatus?.state === 'success') {
+            console.log(`invalidating deployment: ${JSON.stringify(deployment, null, 2)}`);
+            await octokitClient.rest.repos.createDeploymentStatus({
+                ...github_1.context.repo,
+                deployment_id: deployment.id,
+                state: 'inactive',
+                environment_url: lastStatus.environment_url,
+                log_url: lastStatus.log_url
+            });
         }
-        catch (error) {
-            console.error(error.message);
-            return `no_${branch}`;
-        }
-    });
+    }));
 }
-function create(octokitClient, logUrl, description, initialStatus, environment, environmentUrl, mainBranch) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield invalidatePreviousDeployments(octokitClient, environment);
-        // get main branch sha to store in payload
-        const mainBranchSha = yield getMainSha(octokitClient, mainBranch);
-        const payload = JSON.stringify({ actor: github_1.context.actor, main_sha: mainBranchSha });
-        const deployment = yield octokitClient.rest.repos.createDeployment(Object.assign(Object.assign({}, github_1.context.repo), { ref: github_1.context.ref, required_contexts: [], environment, transient_environment: true, auto_merge: false, description,
-            payload }));
-        const deploymentId = deployment.data.id;
-        console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
-        const status = yield octokitClient.rest.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: initialStatus, log_url: logUrl, environment_url: environmentUrl }));
-        console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);
-        return deploymentId.toString();
+async function getMainSha(octokitClient, branch) {
+    try {
+        const response = await octokitClient.rest.repos.getBranch({ ...github_1.context.repo, branch });
+        const sha = String(response.data.commit.sha);
+        console.log(`${branch} branch sha: ${sha}`);
+        return sha;
+    }
+    catch (error) {
+        console.error(error.message);
+        return `no_${branch}`;
+    }
+}
+async function create(octokitClient, logUrl, description, initialStatus, environment, environmentUrl, mainBranch) {
+    await invalidatePreviousDeployments(octokitClient, environment);
+    // get main branch sha to store in payload
+    const mainBranchSha = await getMainSha(octokitClient, mainBranch);
+    const payload = JSON.stringify({ actor: github_1.context.actor, main_sha: mainBranchSha });
+    const deployment = await octokitClient.rest.repos.createDeployment({
+        ...github_1.context.repo,
+        ref: github_1.context.ref,
+        required_contexts: [],
+        environment,
+        transient_environment: true,
+        auto_merge: false,
+        description,
+        payload
     });
+    const deploymentId = deployment.data.id;
+    console.log(`created deployment: ${JSON.stringify(deployment.data, null, 2)}`);
+    const status = await octokitClient.rest.repos.createDeploymentStatus({
+        ...github_1.context.repo,
+        deployment_id: deploymentId,
+        state: initialStatus,
+        log_url: logUrl,
+        environment_url: environmentUrl
+    });
+    console.log(`created deployment status: ${JSON.stringify(status.data, null, 2)}`);
+    return deploymentId.toString();
 }
 exports.create = create;
 
@@ -68,35 +80,31 @@ exports.create = create;
 /***/ }),
 
 /***/ 9854:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deleteAll = void 0;
 const github_1 = __nccwpck_require__(5438);
-function deleteAll(octokitClient, environment) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const deployments = yield octokitClient.rest.repos.listDeployments(Object.assign(Object.assign({}, github_1.context.repo), { environment }));
-        yield Promise.all(deployments.data.map((deployment) => __awaiter(this, void 0, void 0, function* () {
-            // invalidate deployment first
-            // since we can't delete active deployment
-            console.log(`invalidate deployment: ${deployment.id}`);
-            yield octokitClient.rest.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deployment.id, state: 'failure' }));
-            // then delete it
-            console.log(`delete deployment: ${deployment.url}`);
-            yield octokitClient.request(deployment.url, { method: 'DELETE' });
-        })));
+async function deleteAll(octokitClient, environment) {
+    const deployments = await octokitClient.rest.repos.listDeployments({
+        ...github_1.context.repo,
+        environment
     });
+    await Promise.all(deployments.data.map(async (deployment) => {
+        // invalidate deployment first
+        // since we can't delete active deployment
+        console.log(`invalidate deployment: ${deployment.id}`);
+        await octokitClient.rest.repos.createDeploymentStatus({
+            ...github_1.context.repo,
+            deployment_id: deployment.id,
+            state: 'failure'
+        });
+        // then delete it
+        console.log(`delete deployment: ${deployment.url}`);
+        await octokitClient.request(deployment.url, { method: 'DELETE' });
+    }));
 }
 exports.deleteAll = deleteAll;
 
@@ -104,33 +112,26 @@ exports.deleteAll = deleteAll;
 /***/ }),
 
 /***/ 9645:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deleteDeployment = void 0;
 const github_1 = __nccwpck_require__(5438);
-function deleteDeployment(octoKitClient, deploymentId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // invalidate deployment first
-        // since we can't delete active deployment
-        console.log(`invalidate deployment: ${deploymentId}`);
-        const status = yield octoKitClient.rest.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: 'failure' }));
-        // then delete it
-        const deploymentUrl = String(status.data.deployment_url);
-        console.log(`delete deployment: ${deploymentUrl}`);
-        yield octoKitClient.request(deploymentUrl, { method: 'DELETE' });
+async function deleteDeployment(octoKitClient, deploymentId) {
+    // invalidate deployment first
+    // since we can't delete active deployment
+    console.log(`invalidate deployment: ${deploymentId}`);
+    const status = await octoKitClient.rest.repos.createDeploymentStatus({
+        ...github_1.context.repo,
+        deployment_id: deploymentId,
+        state: 'failure'
     });
+    // then delete it
+    const deploymentUrl = String(status.data.deployment_url);
+    console.log(`delete deployment: ${deploymentUrl}`);
+    await octoKitClient.request(deploymentUrl, { method: 'DELETE' });
 }
 exports.deleteDeployment = deleteDeployment;
 
@@ -165,15 +166,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -182,91 +174,88 @@ const create_1 = __nccwpck_require__(9018);
 const delete_all_1 = __nccwpck_require__(9854);
 const delete_1 = __nccwpck_require__(9645);
 const utils_1 = __nccwpck_require__(918);
-function run() {
-    var _a, _b, _c, _d, _e, _f, _g;
-    return __awaiter(this, void 0, void 0, function* () {
-        let token;
-        let type;
-        let logsUrl;
-        let description;
-        let status;
-        let environment;
-        let environmentUrl;
-        let deploymentId;
-        let mainBranch;
-        const { actor, ref } = github.context;
-        console.log('### main.context ###');
-        console.log(`actor: ${actor}`);
-        console.log(`ref: ${ref}`);
-        console.log('\n');
-        try {
-            console.log('### main.inputs ###');
-            token = (_a = (0, utils_1.getInput)('token', { required: true })) !== null && _a !== void 0 ? _a : '';
-            type = (0, utils_1.getInput)('type', { required: true });
-            console.log(`type: ${type}`);
-            logsUrl = (_b = (0, utils_1.getInput)('logs')) !== null && _b !== void 0 ? _b : '';
-            console.log(`logs: ${logsUrl}`);
-            description = (_c = (0, utils_1.getInput)('description')) !== null && _c !== void 0 ? _c : `deployed by ${actor}`;
-            console.log(`description: ${description}`);
-            status = ((_d = (0, utils_1.getInput)('status')) !== null && _d !== void 0 ? _d : 'in_progress');
-            console.log(`status: ${status}`);
-            environment = (0, utils_1.getEnvironment)(ref);
-            environmentUrl = (_e = (0, utils_1.getInput)('environment_url')) !== null && _e !== void 0 ? _e : '';
-            console.log(`environmentUrl: ${environmentUrl}`);
-            mainBranch = (_f = (0, utils_1.getInput)('main_branch')) !== null && _f !== void 0 ? _f : 'master';
-            console.log(`main branch: ${mainBranch}`);
-            const shouldRequireDeploymentId = type === 'delete';
-            deploymentId = (_g = (0, utils_1.getInput)(utils_1.DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId })) !== null && _g !== void 0 ? _g : '0';
-            console.log(`deploymentId: ${deploymentId}`);
-        }
-        catch (error) {
-            core.error(error);
-            core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`);
-            throw error;
-        }
-        console.log('\n');
-        const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] });
-        console.log('### run ###');
-        switch (type) {
-            case 'create':
-                try {
-                    // If a deployment was already created on a previous job,
-                    // don't create one again.
-                    if (deploymentId === '0') {
-                        deploymentId = yield (0, create_1.create)(octokitClient, logsUrl, description, status, environment, environmentUrl, mainBranch);
-                    }
-                    console.log(`saveState::${utils_1.DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`);
-                    core.saveState(utils_1.DEPLOYMENT_ID_STATE_NAME, deploymentId); // for internal use
-                    core.setOutput(utils_1.DEPLOYMENT_ID_STATE_NAME, deploymentId); // keep that output for external dependencies
+async function run() {
+    let token;
+    let type;
+    let logsUrl;
+    let description;
+    let status;
+    let environment;
+    let environmentUrl;
+    let deploymentId;
+    let mainBranch;
+    const { actor, ref } = github.context;
+    console.log('### main.context ###');
+    console.log(`actor: ${actor}`);
+    console.log(`ref: ${ref}`);
+    console.log('\n');
+    try {
+        console.log('### main.inputs ###');
+        token = (0, utils_1.getInput)('token', { required: true }) ?? '';
+        type = (0, utils_1.getInput)('type', { required: true });
+        console.log(`type: ${type}`);
+        logsUrl = (0, utils_1.getInput)('logs') ?? '';
+        console.log(`logs: ${logsUrl}`);
+        description = (0, utils_1.getInput)('description') ?? `deployed by ${actor}`;
+        console.log(`description: ${description}`);
+        status = ((0, utils_1.getInput)('status') ?? 'in_progress');
+        console.log(`status: ${status}`);
+        environment = (0, utils_1.getEnvironment)(ref);
+        environmentUrl = (0, utils_1.getInput)('environment_url') ?? '';
+        console.log(`environmentUrl: ${environmentUrl}`);
+        mainBranch = (0, utils_1.getInput)('main_branch') ?? 'master';
+        console.log(`main branch: ${mainBranch}`);
+        const shouldRequireDeploymentId = type === 'delete';
+        deploymentId = (0, utils_1.getInput)(utils_1.DEPLOYMENT_ID_STATE_NAME, { required: shouldRequireDeploymentId }) ?? '0';
+        console.log(`deploymentId: ${deploymentId}`);
+    }
+    catch (error) {
+        core.error(error);
+        core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`);
+        throw error;
+    }
+    console.log('\n');
+    const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] });
+    console.log('### run ###');
+    switch (type) {
+        case 'create':
+            try {
+                // If a deployment was already created on a previous job,
+                // don't create one again.
+                if (deploymentId === '0') {
+                    deploymentId = await (0, create_1.create)(octokitClient, logsUrl, description, status, environment, environmentUrl, mainBranch);
                 }
-                catch (error) {
-                    core.error(error);
-                    core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`);
-                    throw error;
-                }
-                break;
-            case 'delete':
-                try {
-                    yield (0, delete_1.deleteDeployment)(octokitClient, Number(deploymentId));
-                }
-                catch (error) {
-                    core.error(error);
-                    core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`);
-                    throw error;
-                }
-                break;
-            case 'delete-all':
-                try {
-                    yield (0, delete_all_1.deleteAll)(octokitClient, environment);
-                }
-                catch (error) {
-                    core.error(error);
-                    core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`);
-                    throw error;
-                }
-                break;
-        }
-    });
+                console.log(`saveState::${utils_1.DEPLOYMENT_ID_STATE_NAME}: ${deploymentId}`);
+                core.saveState(utils_1.DEPLOYMENT_ID_STATE_NAME, deploymentId); // for internal use
+                core.setOutput(utils_1.DEPLOYMENT_ID_STATE_NAME, deploymentId); // keep that output for external dependencies
+            }
+            catch (error) {
+                core.error(error);
+                core.setFailed(`Create deployment failed: ${JSON.stringify(error, null, 2)}`);
+                throw error;
+            }
+            break;
+        case 'delete':
+            try {
+                await (0, delete_1.deleteDeployment)(octokitClient, Number(deploymentId));
+            }
+            catch (error) {
+                core.error(error);
+                core.setFailed(`Delete deployment failed: ${JSON.stringify(error, null, 2)}`);
+                throw error;
+            }
+            break;
+        case 'delete-all':
+            try {
+                await (0, delete_all_1.deleteAll)(octokitClient, environment);
+            }
+            catch (error) {
+                core.error(error);
+                core.setFailed(`Delete all deployments failed: ${JSON.stringify(error, null, 2)}`);
+                throw error;
+            }
+            break;
+    }
 }
 exports.run = run;
 if (process.env.NODE_ENV !== 'test')
@@ -303,15 +292,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postSlackNotification = exports.getEnvironment = exports.getInput = exports.DEPLOYMENT_ID_STATE_NAME = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -328,59 +308,55 @@ function getInput(name, options) {
 }
 exports.getInput = getInput;
 function getEnvironment(ref) {
-    var _a;
     // default to branch name w/o `deploy-` prefix
-    const environment = (_a = getInput('environment')) !== null && _a !== void 0 ? _a : ref.replace('refs/heads/', '').replace(/^deploy-/, '');
+    const environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '');
     console.log(`environment: ${environment}`);
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        if (slackToken === '' || slackChannel === '') {
-            return;
+async function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
+    if (slackToken === '' || slackChannel === '') {
+        return;
+    }
+    const { actor, repo, payload } = context;
+    try {
+        const statusIcon = status === 'success' ? '✅' : '❌';
+        const afterSha = sha.slice(0, 7);
+        const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
+        const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
+        const commitUrl = `${repoUrl}/commit/${sha}`;
+        let commitText = `<${commitUrl}|${afterSha}>`;
+        const payloadForPushes = payload;
+        if (payloadForPushes?.compare !== undefined) {
+            const beforeSha = payloadForPushes.before.slice(0, 7);
+            const afterShaMessage = payloadForPushes.head_commit.message ?? '';
+            const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60); // keep only some first symbols of the first line
+            commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
         }
-        const { actor, repo, payload } = context;
-        try {
-            const statusIcon = status === 'success' ? '✅' : '❌';
-            const afterSha = sha.slice(0, 7);
-            const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
-            const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
-            const commitUrl = `${repoUrl}/commit/${sha}`;
-            let commitText = `<${commitUrl}|${afterSha}>`;
-            const payloadForPushes = payload;
-            if ((payloadForPushes === null || payloadForPushes === void 0 ? void 0 : payloadForPushes.compare) !== undefined) {
-                const beforeSha = payloadForPushes.before.slice(0, 7);
-                const afterShaMessage = (_a = payloadForPushes.head_commit.message) !== null && _a !== void 0 ? _a : '';
-                const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60); // keep only some first symbols of the first line
-                commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
-            }
-            // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            let text;
-            const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`;
-            if (deploymentConfidenceUrl !== '' && status === 'success') {
-                text = `${baseText}\n\n:toolbox: Check out our <${deploymentConfidenceUrl}|deployment confidence dashboard> so you are the first to know if anything is broken.`;
-            }
-            else {
-                text = baseText;
-            }
-            const slackClient = new web_api_1.WebClient(slackToken);
-            const slackParams = {
-                channel: slackChannel,
-                unfurl_links: false,
-                mrkdwn: true,
-                text
-            };
-            console.log(`Posting Slack message: ${text}`);
-            // API description - https://api.slack.com/methods/chat.postMessage
-            yield slackClient.chat.postMessage(slackParams);
-            console.log(`Slack message posted to channel: ${slackChannel}`);
+        // message formatting reference - https://api.slack.com/reference/surfaces/formatting
+        let text;
+        const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`;
+        if (deploymentConfidenceUrl !== '' && status === 'success') {
+            text = `${baseText}\n\n:toolbox: Check out our <${deploymentConfidenceUrl}|deployment confidence dashboard> so you are the first to know if anything is broken.`;
         }
-        catch (error) {
-            core.error(error);
+        else {
+            text = baseText;
         }
-    });
+        const slackClient = new web_api_1.WebClient(slackToken);
+        const slackParams = {
+            channel: slackChannel,
+            unfurl_links: false,
+            mrkdwn: true,
+            text
+        };
+        console.log(`Posting Slack message: ${text}`);
+        // API description - https://api.slack.com/methods/chat.postMessage
+        await slackClient.chat.postMessage(slackParams);
+        console.log(`Slack message posted to channel: ${slackChannel}`);
+    }
+    catch (error) {
+        core.error(error);
+    }
 }
 exports.postSlackNotification = postSlackNotification;
 function trimEllipsis(str, length) {

@@ -6,8 +6,6 @@ module.exports = {
   testRunner: "jest-circus/runner",
   transform: {
     "^.+\\.ts$": "ts-jest",
-    "^.+\\.js$": "babel-jest",
   },
-  transformIgnorePatterns: ["node_modules/(?!@octokit/core)"],
   verbose: true,
 };

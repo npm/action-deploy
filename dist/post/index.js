@@ -2,30 +2,28 @@
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 8774:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.complete = void 0;
 const github_1 = __nccwpck_require__(5438);
-function complete(octokitClient, deploymentId, status) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const statuses = yield octokitClient.rest.repos.listDeploymentStatuses(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId }));
-        const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
-        console.log(`last status for deployment_id '${deploymentId}': ${JSON.stringify(lastStatus, null, 2)}`);
-        const statusResult = yield octokitClient.rest.repos.createDeploymentStatus(Object.assign(Object.assign({}, github_1.context.repo), { deployment_id: deploymentId, state: status, environment_url: lastStatus.environment_url, log_url: lastStatus.log_url }));
-        console.log(`created deployment status: ${JSON.stringify(statusResult.data, null, 2)}`);
+async function complete(octokitClient, deploymentId, status) {
+    const statuses = await octokitClient.rest.repos.listDeploymentStatuses({
+        ...github_1.context.repo,
+        deployment_id: deploymentId
     });
+    const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0];
+    console.log(`last status for deployment_id '${deploymentId}': ${JSON.stringify(lastStatus, null, 2)}`);
+    const statusResult = await octokitClient.rest.repos.createDeploymentStatus({
+        ...github_1.context.repo,
+        deployment_id: deploymentId,
+        state: status,
+        environment_url: lastStatus.environment_url,
+        log_url: lastStatus.log_url
+    });
+    console.log(`created deployment status: ${JSON.stringify(statusResult.data, null, 2)}`);
 }
 exports.complete = complete;
 
@@ -60,104 +58,92 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.post = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const complete_1 = __nccwpck_require__(8774);
 const utils_1 = __nccwpck_require__(918);
-function post() {
-    var _a, _b, _c, _d, _e, _f;
-    return __awaiter(this, void 0, void 0, function* () {
-        let token;
-        let type;
-        let deploymentId;
-        let jobStatus;
-        let environment;
-        let slackToken;
-        let slackChannel;
-        let deploymentConfidenceUrl;
-        let mutateDeployment;
-        let currentSha;
-        const { actor, ref, repo, sha } = github.context;
-        console.log('### post.context ###');
-        console.log(`actor: ${actor}`);
-        console.log(`ref: ${ref}`);
-        console.log(`owner: ${repo.owner}`);
-        console.log(`repo: ${repo.repo}`);
-        console.log(`compare: ${github.context.payload.compare}`);
-        console.log(`new_sha: ${sha}`);
-        console.log('\n');
-        try {
-            console.log('### post.inputs ###');
-            token = (_a = (0, utils_1.getInput)('token', { required: true })) !== null && _a !== void 0 ? _a : '';
-            type = (0, utils_1.getInput)('type', { required: true });
-            console.log(`type: ${type}`);
-            jobStatus = (_b = (0, utils_1.getInput)('job_status')) !== null && _b !== void 0 ? _b : 'success';
-            console.log(`job_status: ${jobStatus}`);
-            environment = (0, utils_1.getEnvironment)(ref);
-            slackToken = (_c = (0, utils_1.getInput)('slack_token')) !== null && _c !== void 0 ? _c : '';
-            console.log(`slack_token: ${slackToken === '' ? 'none' : 'passed'}`);
-            slackChannel = (_d = (0, utils_1.getInput)('slack_channel')) !== null && _d !== void 0 ? _d : '';
-            console.log(`slack_channel: ${slackChannel}`);
-            // We want to mutate the Deployment by default, unless the deployment
-            // was already mutated by another action and we just want to notify
-            mutateDeployment = (0, utils_1.getInput)('mutate_deployment') !== 'false';
-            console.log(`mutate_deployment: ${mutateDeployment.toString()}`);
-            currentSha = (_e = (0, utils_1.getInput)('current_sha')) !== null && _e !== void 0 ? _e : sha;
-            console.log(`current_sha: ${currentSha}`);
-            deploymentConfidenceUrl = (_f = (0, utils_1.getInput)('deployment_confidence_url')) !== null && _f !== void 0 ? _f : '';
-            console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`);
-        }
-        catch (error) {
-            core.error(error);
-            core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`);
-            throw error;
-        }
-        console.log('\n');
-        console.log('### post ###');
-        const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] });
-        const status = jobStatus === 'success' ? 'success' : 'failure';
-        console.log(`status: ${status}`);
-        switch (type) {
-            case 'create':
-                deploymentId = core.getState(utils_1.DEPLOYMENT_ID_STATE_NAME);
-                console.log(`deploymentId: ${deploymentId}`);
-                if (deploymentId === undefined || deploymentId === '') {
-                    console.log('No deploymentId provided, skip status update');
+async function post() {
+    let token;
+    let type;
+    let deploymentId;
+    let jobStatus;
+    let environment;
+    let slackToken;
+    let slackChannel;
+    let deploymentConfidenceUrl;
+    let mutateDeployment;
+    let currentSha;
+    const { actor, ref, repo, sha } = github.context;
+    console.log('### post.context ###');
+    console.log(`actor: ${actor}`);
+    console.log(`ref: ${ref}`);
+    console.log(`owner: ${repo.owner}`);
+    console.log(`repo: ${repo.repo}`);
+    console.log(`compare: ${github.context.payload.compare}`);
+    console.log(`new_sha: ${sha}`);
+    console.log('\n');
+    try {
+        console.log('### post.inputs ###');
+        token = (0, utils_1.getInput)('token', { required: true }) ?? '';
+        type = (0, utils_1.getInput)('type', { required: true });
+        console.log(`type: ${type}`);
+        jobStatus = (0, utils_1.getInput)('job_status') ?? 'success';
+        console.log(`job_status: ${jobStatus}`);
+        environment = (0, utils_1.getEnvironment)(ref);
+        slackToken = (0, utils_1.getInput)('slack_token') ?? '';
+        console.log(`slack_token: ${slackToken === '' ? 'none' : 'passed'}`);
+        slackChannel = (0, utils_1.getInput)('slack_channel') ?? '';
+        console.log(`slack_channel: ${slackChannel}`);
+        // We want to mutate the Deployment by default, unless the deployment
+        // was already mutated by another action and we just want to notify
+        mutateDeployment = (0, utils_1.getInput)('mutate_deployment') !== 'false';
+        console.log(`mutate_deployment: ${mutateDeployment.toString()}`);
+        currentSha = (0, utils_1.getInput)('current_sha') ?? sha;
+        console.log(`current_sha: ${currentSha}`);
+        deploymentConfidenceUrl = (0, utils_1.getInput)('deployment_confidence_url') ?? '';
+        console.log(`deployment confidence dashboard URL: ${deploymentConfidenceUrl}`);
+    }
+    catch (error) {
+        core.error(error);
+        core.setFailed(`Wrong parameters given: ${JSON.stringify(error, null, 2)}`);
+        throw error;
+    }
+    console.log('\n');
+    console.log('### post ###');
+    const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] });
+    const status = jobStatus === 'success' ? 'success' : 'failure';
+    console.log(`status: ${status}`);
+    switch (type) {
+        case 'create':
+            deploymentId = core.getState(utils_1.DEPLOYMENT_ID_STATE_NAME);
+            console.log(`deploymentId: ${deploymentId}`);
+            if (deploymentId === undefined || deploymentId === '') {
+                console.log('No deploymentId provided, skip status update');
+                return;
+            }
+            // Post Slack notification
+            await (0, utils_1.postSlackNotification)(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl, currentSha);
+            try {
+                // If the deployment was managed by another workflow we don't want to mutate it here
+                if (mutateDeployment)
+                    await (0, complete_1.complete)(octokitClient, Number(deploymentId), status);
+            }
+            catch (error) {
+                if (error.name === 'HttpError' && error.status === 404) {
+                    console.log('Couldn\'t complete a deployment: not found');
                     return;
                 }
-                // Post Slack notification
-                yield (0, utils_1.postSlackNotification)(slackToken, slackChannel, environment, status, github.context, deploymentConfidenceUrl, currentSha);
-                try {
-                    // If the deployment was managed by another workflow we don't want to mutate it here
-                    if (mutateDeployment)
-                        yield (0, complete_1.complete)(octokitClient, Number(deploymentId), status);
-                }
-                catch (error) {
-                    if (error.name === 'HttpError' && error.status === 404) {
-                        console.log('Couldn\'t complete a deployment: not found');
-                        return;
-                    }
-                    core.error(error);
-                    core.setFailed(`Complete deployment failed: ${JSON.stringify(error, null, 2)}`);
-                    throw error;
-                }
-                break;
-            default:
-                console.log(`No post script for type: ${type}`);
-                break;
-        }
-    });
+                core.error(error);
+                core.setFailed(`Complete deployment failed: ${JSON.stringify(error, null, 2)}`);
+                throw error;
+            }
+            break;
+        default:
+            console.log(`No post script for type: ${type}`);
+            break;
+    }
 }
 exports.post = post;
 if (process.env.NODE_ENV !== 'test')
@@ -194,15 +180,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postSlackNotification = exports.getEnvironment = exports.getInput = exports.DEPLOYMENT_ID_STATE_NAME = void 0;
 const core = __importStar(__nccwpck_require__(2186));
@@ -219,59 +196,55 @@ function getInput(name, options) {
 }
 exports.getInput = getInput;
 function getEnvironment(ref) {
-    var _a;
     // default to branch name w/o `deploy-` prefix
-    const environment = (_a = getInput('environment')) !== null && _a !== void 0 ? _a : ref.replace('refs/heads/', '').replace(/^deploy-/, '');
+    const environment = getInput('environment') ?? ref.replace('refs/heads/', '').replace(/^deploy-/, '');
     console.log(`environment: ${environment}`);
     return environment;
 }
 exports.getEnvironment = getEnvironment;
-function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        if (slackToken === '' || slackChannel === '') {
-            return;
+async function postSlackNotification(slackToken, slackChannel, environment, status, context, deploymentConfidenceUrl, sha) {
+    if (slackToken === '' || slackChannel === '') {
+        return;
+    }
+    const { actor, repo, payload } = context;
+    try {
+        const statusIcon = status === 'success' ? '✅' : '❌';
+        const afterSha = sha.slice(0, 7);
+        const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
+        const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
+        const commitUrl = `${repoUrl}/commit/${sha}`;
+        let commitText = `<${commitUrl}|${afterSha}>`;
+        const payloadForPushes = payload;
+        if (payloadForPushes?.compare !== undefined) {
+            const beforeSha = payloadForPushes.before.slice(0, 7);
+            const afterShaMessage = payloadForPushes.head_commit.message ?? '';
+            const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60); // keep only some first symbols of the first line
+            commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
         }
-        const { actor, repo, payload } = context;
-        try {
-            const statusIcon = status === 'success' ? '✅' : '❌';
-            const afterSha = sha.slice(0, 7);
-            const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
-            const deploymentUrl = `${repoUrl}/deployments?environment=${environment}#activity-log`;
-            const commitUrl = `${repoUrl}/commit/${sha}`;
-            let commitText = `<${commitUrl}|${afterSha}>`;
-            const payloadForPushes = payload;
-            if ((payloadForPushes === null || payloadForPushes === void 0 ? void 0 : payloadForPushes.compare) !== undefined) {
-                const beforeSha = payloadForPushes.before.slice(0, 7);
-                const afterShaMessage = (_a = payloadForPushes.head_commit.message) !== null && _a !== void 0 ? _a : '';
-                const shortShaMessage = trimEllipsis(afterShaMessage.replace(/(\r\n|\n|\r).*$/gm, ''), 60); // keep only some first symbols of the first line
-                commitText = `<${payloadForPushes.compare}|${beforeSha} ⇢ ${afterSha} ${shortShaMessage}>`;
-            }
-            // message formatting reference - https://api.slack.com/reference/surfaces/formatting
-            let text;
-            const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`;
-            if (deploymentConfidenceUrl !== '' && status === 'success') {
-                text = `${baseText}\n\n:toolbox: Check out our <${deploymentConfidenceUrl}|deployment confidence dashboard> so you are the first to know if anything is broken.`;
-            }
-            else {
-                text = baseText;
-            }
-            const slackClient = new web_api_1.WebClient(slackToken);
-            const slackParams = {
-                channel: slackChannel,
-                unfurl_links: false,
-                mrkdwn: true,
-                text
-            };
-            console.log(`Posting Slack message: ${text}`);
-            // API description - https://api.slack.com/methods/chat.postMessage
-            yield slackClient.chat.postMessage(slackParams);
-            console.log(`Slack message posted to channel: ${slackChannel}`);
+        // message formatting reference - https://api.slack.com/reference/surfaces/formatting
+        let text;
+        const baseText = `<${repoUrl}|${repo.repo}> deployment 🚀 to <${deploymentUrl}|${environment}> by <@${actor.toLowerCase()}> completed with ${status} ${statusIcon} - ${commitText}.`;
+        if (deploymentConfidenceUrl !== '' && status === 'success') {
+            text = `${baseText}\n\n:toolbox: Check out our <${deploymentConfidenceUrl}|deployment confidence dashboard> so you are the first to know if anything is broken.`;
         }
-        catch (error) {
-            core.error(error);
+        else {
+            text = baseText;
         }
-    });
+        const slackClient = new web_api_1.WebClient(slackToken);
+        const slackParams = {
+            channel: slackChannel,
+            unfurl_links: false,
+            mrkdwn: true,
+            text
+        };
+        console.log(`Posting Slack message: ${text}`);
+        // API description - https://api.slack.com/methods/chat.postMessage
+        await slackClient.chat.postMessage(slackParams);
+        console.log(`Slack message posted to channel: ${slackChannel}`);
+    }
+    catch (error) {
+        core.error(error);
+    }
 }
 exports.postSlackNotification = postSlackNotification;
 function trimEllipsis(str, length) {
