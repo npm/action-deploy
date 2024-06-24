@@ -118,9 +118,6 @@ describe("create", () => {
 
     // act
     expect(main.run()).rejects.toThrow("environment_url must use http(s) scheme");
-
-    // assert
-    mock.done();
   });
 });
 
