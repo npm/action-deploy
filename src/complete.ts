@@ -1,17 +1,17 @@
-import { context, GitHub } from '@actions/github'
+import { context } from '@actions/github'
 import { DeploymentStatus } from './utils'
 
 export async function complete (
-  client: GitHub,
+  octokitClient: any,
   deploymentId: number,
   status: DeploymentStatus
 ): Promise<void> {
-  const statuses = await client.repos.listDeploymentStatuses({
+  const statuses = await octokitClient.rest.repos.listDeploymentStatuses({
     ...context.repo,
     deployment_id: deploymentId
   })
 
-  const lastStatus = statuses.data.sort((a, b) => a.id - b.id).slice(-1)[0]
+  const lastStatus = statuses.data.sort((a: { id: number }, b: { id: number }) => a.id - b.id).slice(-1)[0]
   console.log(
     `last status for deployment_id '${deploymentId}': ${JSON.stringify(
       lastStatus,
@@ -20,7 +20,7 @@ export async function complete (
     )}`
   )
 
-  const statusResult = await client.repos.createDeploymentStatus({
+  const statusResult = await octokitClient.rest.repos.createDeploymentStatus({
     ...context.repo,
     deployment_id: deploymentId,
     state: status,
