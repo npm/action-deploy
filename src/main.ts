@@ -58,8 +58,7 @@ export async function run (): Promise<void> {
   }
   console.log('\n')
 
-  const client = new github.GitHub(token, { previews: ['ant-man', 'flash'] })
-
+  const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] })
   console.log('### run ###')
 
   switch (type) {
@@ -69,7 +68,7 @@ export async function run (): Promise<void> {
         // don't create one again.
         if (deploymentId === '0') {
           deploymentId = await create(
-            client,
+            octokitClient,
             logsUrl,
             description,
             status,
@@ -90,7 +89,7 @@ export async function run (): Promise<void> {
     case 'delete':
       try {
         await deleteDeployment(
-          client,
+          octokitClient,
           Number(deploymentId)
         )
       } catch (error: any) {
@@ -102,7 +101,7 @@ export async function run (): Promise<void> {
     case 'delete-all':
       try {
         await deleteAll(
-          client,
+          octokitClient,
           environment
         )
       } catch (error: any) {
