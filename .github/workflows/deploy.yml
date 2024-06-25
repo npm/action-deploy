@@ -8,10 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
 
     - name: create a deployment
-      uses: npm/action-deploy@v2.1.1
+      uses: npm/action-deploy@v2.6.0
       id: create-deployment
       with:
         type: create
