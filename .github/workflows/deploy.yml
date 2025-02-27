@@ -1,28 +1,30 @@
-name: deploy
+name: 🚀 Deploy to npm Registry
+
 on:
   push:
     branches:
-      - deploy-**
+      - main
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: create a deployment
-      uses: npm/action-deploy@v2.6.0
-      id: create-deployment
-      with:
-        type: create
-        token: ${{github.token}}
-        logs: https://github.com/npm/action-deploy/actions?query=workflow%3Adeploy
-        environment_url: https://npmjs.com
-        job_status: ${{job.status}}
-        slack_token: ${{secrets.NPM_ROBOT_SLACK_TOKEN}}
-        slack_channel: npm-test-notifications
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: "https://registry.npmjs.org/"
 
-    # add here an actual deployment
-    - name: placeholder for actual deployment
-      run: sleep 10s
+      - name: Install dependencies
+        run: npm install
 
+      - name: Build package (if needed)
+        run: npm run build || echo "No build step"
+
+      - name: Publish to Private npm Registry
+        run: npm publish --access restricted
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
