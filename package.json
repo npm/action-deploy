@@ -1,6 +1,6 @@
 {
   "name": "action-deploy",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "private": true,
   "description": "Action to manage GitHub deployments",
   "main": "lib/main.js",
@@ -27,7 +27,7 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/github": "^6.0.0",
-    "@slack/web-api": "^7.9.3"
+    "@slack/web-api": "^7.10.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
