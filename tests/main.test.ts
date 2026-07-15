@@ -47,7 +47,11 @@ const main = await import("../src/main.js");
 const post = await import("../src/post.js");
 
 // mocking console.log to make test output less noisy
-jest.spyOn(console, "log").mockImplementation(() => {});
+const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+afterAll(() => {
+  consoleLogSpy.mockRestore();
+});
 
 function mockInputs(inputs: any): void {
   jest.mocked(core.getInput).mockImplementation((name: string) => inputs[name]);
