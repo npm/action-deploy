@@ -1,10 +1,11 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
+import type { context as githubContext } from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
 
 // `@actions/github@9` no longer exposes `lib/context`/`lib/interfaces` via its
-// `exports` map, so derive these types from the public `context` instance.
-type Context = typeof github.context
+// `exports` map, so derive these types from the public `context` export. This is
+// a type-only import, so it adds no runtime dependency on `@actions/github`.
+type Context = typeof githubContext
 type WebhookPayload = Context['payload']
 
 export type WebhookPayloadForPushes = WebhookPayload & {
