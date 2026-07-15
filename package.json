@@ -3,6 +3,9 @@
   "version": "2.6.5",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "description": "Action to manage GitHub deployments",
   "main": "lib/main.js",
   "scripts": {
