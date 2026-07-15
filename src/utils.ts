@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import type { context as githubContext } from '@actions/github'
+import { context as githubContext } from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
 
 type Context = typeof githubContext
