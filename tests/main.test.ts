@@ -140,9 +140,9 @@ describe("complete", () => {
       slack_token: "fake-slack-token",
       slack_channel: "fake-slack-channel",
     });
-    Object.defineProperty(github.context, "actor", { get: () => "Fake-Actor" });
-    Object.defineProperty(github.context, "ref", { get: () => "refs/heads/master" });
-    Object.defineProperty(github.context, "sha", { get: () => "fake-sha-123" });
+Object.defineProperty(github.context, "actor", { configurable: true, get: () => "Fake-Actor" });
+Object.defineProperty(github.context, "ref", { configurable: true, get: () => "refs/heads/master" });
+Object.defineProperty(github.context, "sha", { configurable: true, get: () => "fake-sha-123" });
   });
 
   afterEach(() => {
