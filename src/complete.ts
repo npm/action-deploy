@@ -1,5 +1,5 @@
 import { context } from '@actions/github'
-import { DeploymentStatus } from './utils'
+import { DeploymentStatus } from './utils.js'
 
 export async function complete (
   octokitClient: any,

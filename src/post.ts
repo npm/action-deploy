@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { complete } from './complete'
-import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment, postSlackNotification } from './utils'
+import { complete } from './complete.js'
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment, postSlackNotification } from './utils.js'
 
 export async function post (): Promise<void> {
   let token: string
@@ -62,7 +62,7 @@ export async function post (): Promise<void> {
   console.log('\n')
   console.log('### post ###')
 
-  const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] })
+  const octokitClient = github.getOctokit(token)
   const status: DeploymentStatus = jobStatus === 'success' ? 'success' : 'failure'
   console.log(`status: ${status}`)
 

@@ -1,9 +1,13 @@
 import * as core from '@actions/core'
+import * as github from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
-import { Context } from '@actions/github/lib/context'
-import { WebhookPayload } from '@actions/github/lib/interfaces'
 
-export interface WebhookPayloadForPushes extends WebhookPayload {
+// `@actions/github@9` no longer exposes `lib/context`/`lib/interfaces` via its
+// `exports` map, so derive these types from the public `context` instance.
+type Context = typeof github.context
+type WebhookPayload = Context['payload']
+
+export type WebhookPayloadForPushes = WebhookPayload & {
   after: string
   before: string
   compare?: string
