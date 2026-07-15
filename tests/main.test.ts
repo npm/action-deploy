@@ -24,7 +24,8 @@ jest.unstable_mockModule("@actions/core", () => ({
 }));
 
 // Mutable stand-in for the read-only `github.context`. `repo` is derived from
-// GITHUB_REPOSITORY like the real Context; actor/ref/sha are (re)defined per test.
+// GITHUB_REPOSITORY like the real Context; actor/ref/sha are plain writable
+// properties so each test can reassign them without `Cannot redefine property`.
 const context: any = { payload: {}, actor: undefined, ref: undefined, sha: undefined };
 Object.defineProperty(context, "repo", {
   configurable: true,
@@ -62,8 +63,8 @@ function mockOctokit(mock: any): void {
 describe("create", () => {
   beforeEach(() => {
     process.env["GITHUB_REPOSITORY"] = "owner/repo";
-    Object.defineProperty(github.context, "actor", { get: () => "fake-actor" });
-    Object.defineProperty(github.context, "ref", { get: () => "refs/heads/master" });
+    github.context.actor = "fake-actor";
+    github.context.ref = "refs/heads/master";
   });
 
   afterEach(() => {
@@ -140,9 +141,9 @@ describe("complete", () => {
       slack_token: "fake-slack-token",
       slack_channel: "fake-slack-channel",
     });
-    Object.defineProperty(github.context, "actor", { get: () => "Fake-Actor" });
-    Object.defineProperty(github.context, "ref", { get: () => "refs/heads/master" });
-    Object.defineProperty(github.context, "sha", { get: () => "fake-sha-123" });
+    github.context.actor = "Fake-Actor";
+    github.context.ref = "refs/heads/master";
+    github.context.sha = "fake-sha-123";
   });
 
   afterEach(() => {
@@ -180,8 +181,8 @@ describe("delete-all", () => {
   beforeEach(() => {
     process.env["GITHUB_REPOSITORY"] = "owner/repo";
     mockInputs({ token: "fake-token", type: "delete-all", environment: "staging" });
-    Object.defineProperty(github.context, "actor", { get: () => "fake-actor" });
-    Object.defineProperty(github.context, "ref", { get: () => "refs/heads/master" });
+    github.context.actor = "fake-actor";
+    github.context.ref = "refs/heads/master";
   });
 
   afterEach(() => {
@@ -215,8 +216,8 @@ describe("delete", () => {
   beforeEach(() => {
     process.env["GITHUB_REPOSITORY"] = "owner/repo";
     mockInputs({ token: "fake-token", type: "delete", deployment_id: "42" });
-    Object.defineProperty(github.context, "actor", { get: () => "fake-actor" });
-    Object.defineProperty(github.context, "ref", { get: () => "refs/heads/master" });
+    github.context.actor = "fake-actor";
+    github.context.ref = "refs/heads/master";
   });
 
   afterEach(() => {
