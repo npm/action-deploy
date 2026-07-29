@@ -1,9 +1,11 @@
 import * as core from '@actions/core'
+import { context as githubContext } from '@actions/github'
 import { ChatPostMessageArguments, WebClient } from '@slack/web-api'
-import { Context } from '@actions/github/lib/context'
-import { WebhookPayload } from '@actions/github/lib/interfaces'
 
-export interface WebhookPayloadForPushes extends WebhookPayload {
+type Context = typeof githubContext
+type WebhookPayload = Context['payload']
+
+export type WebhookPayloadForPushes = WebhookPayload & {
   after: string
   before: string
   compare?: string

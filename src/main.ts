@@ -1,10 +1,10 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { create } from './create'
+import { create } from './create.js'
 
-import { deleteAll } from './delete-all'
-import { deleteDeployment } from './delete'
-import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment } from './utils'
+import { deleteAll } from './delete-all.js'
+import { deleteDeployment } from './delete.js'
+import { ActionType, DeploymentStatus, getInput, DEPLOYMENT_ID_STATE_NAME, getEnvironment } from './utils.js'
 
 export async function run (): Promise<void> {
   let token: string
@@ -58,7 +58,7 @@ export async function run (): Promise<void> {
   }
   console.log('\n')
 
-  const octokitClient = github.getOctokit(token, { previews: ['ant-man', 'flash'] })
+  const octokitClient = github.getOctokit(token)
   console.log('### run ###')
 
   switch (type) {

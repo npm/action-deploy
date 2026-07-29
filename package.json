@@ -2,6 +2,10 @@
   "name": "action-deploy",
   "version": "2.6.5",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "description": "Action to manage GitHub deployments",
   "main": "lib/main.js",
   "scripts": {
@@ -9,7 +13,7 @@
     "lint": "ts-standard src/**/*.ts",
     "lint:fix": "ts-standard src/**/*.ts --fix",
     "pack": "ncc build lib/main.js -o dist/main && ncc build lib/post.js -o dist/post",
-    "test": "NODE_ENV=test jest",
+    "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
     "all": "npm run build && npm run lint && npm test && npm run pack"
   },
   "repository": {
@@ -25,8 +29,8 @@
   "author": "radiantspace",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^2.0.2",
-    "@actions/github": "^7.0.0",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "@slack/web-api": "^7.10.0"
   },
   "devDependencies": {
